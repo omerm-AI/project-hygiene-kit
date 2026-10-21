@@ -16,18 +16,22 @@ Status is binary: **Proven** requires actual matching evidence; **Open** include
 | Integration failure recovery | Proven locally | Concurrent edits retained, fresh/staged policy post-commit failure recovery, exact byte/mode/mtime backups and public/private layouts |
 | Standalone malformed/oversized input boundary | Proven locally | Installed callbacks for both hosts emit explicit denial/block using a trusted event argument; no project write |
 | Existing integrated core envelope/error boundary | Open | Error handling occurs before addon dispatch and differs by host/runtime; standalone parser proof does not cover it |
-| Native Codex existing + new sessions/folders for this upgrade | Open | New lifecycle controller and actual source-bound host run required |
-| Native Claude Code existing + new sessions/folders for this upgrade | Open | Zero-model controller validation then bounded subscription-only lifecycle required |
-| Public anonymous first-install replay | Open | Separate repository not published yet |
+| Native Codex existing + new sessions/folders for this upgrade | Open | First real trial failed at consent flow; existing advisory boundary prevents an enforcement claim. Three native turns started, provider request count unavailable; new-root stage not reached |
+| Native Claude Code existing + new sessions/folders for this upgrade | Open | First real trial failed at consent flow; actual Write succeeded while an advisory wrapper replaced the guard denial with a warning. Six subscription requests forwarded; new-root stage not reached |
+| Public anonymous first-install replay | Proven locally | Anonymous HTTPS clone of initial public preview; 84 tests and four installed-command scenarios across both hosts and old/new folders passed. Synthetic event identifiers, not native host proof |
+| Temporary native-test rollback | Proven | Both completed trials exited their watchdogs, restored every frozen operator source hash, preserved settings and removed the temporary organization policy |
 | Persistent activation of this upgrade | Open | Intentionally withheld until corresponding native acceptance passes |
 | Arbitrary shell/MCP/background writes | Open | Outside registered known native file-tool interception |
 | Every external/dynamic dependency and semantic history assertion | Open | Not universally decidable from bounded local file evidence |
 | Old processes without loaded native callbacks | Open | Host cannot dispatch definitions it never loaded |
 | Complete ordinary-instruction isolation in Codex | Open | Zero-model prompt rendering proves project_doc_max_bytes=0 removes project instructions but retains global AGENTS; vendor/developer hashes unchanged |
 | Cowork / ordinary GPT | Open | No native proof for this package; instructions or memory are not hook enforcement |
+| Operating systems beyond macOS | Open | Native execution was attempted on macOS only; current locking requires POSIX and does not support Windows |
 
 No model request was required for the local suite. Native testing must record subscription transport, actual request counts where measurable, the three-trial-per-host cap, source hashes, genuine host identifiers and independent file evidence. Raw operator traces and personal project names remain outside this public repository.
 
 Known native-file safeguards from the earlier Workflow Hooks Kit release remain separate evidence; they do not prove this new onboarding/guide upgrade.
+
+The first native attempts exposed a false-positive preparation check: it matched the expected reason text without requiring a denial decision. Those earlier integrated zero-model negative checks are invalid enforcement evidence. Standalone package tests and anonymous replay remain separate, actual code/file checks; neither overrides the failed native integration result. No failed feature was persistently deployed.
 
 Independent Astra review replayed three groups of concrete failures through its third review pass. Source remained stable during that pass. The lead then separately closed and tested the staged-enable post-commit branch. No claim attributes that subsequent source change to the earlier Astra source hash.

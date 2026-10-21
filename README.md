@@ -20,7 +20,7 @@ No age/name/extension heuristic proves obsolescence. A clearly superseded versio
 
 ## Install
 
-Requires Python 3.10+ with system timezone data, a supported native hook host, and write access to your own settings. No model API key or paid service is required by this runtime.
+Requires Python 3.10+ with system timezone data, a supported native hook host, and write access to your own settings. macOS is the tested operating system; other systems remain unverified, and the current POSIX locking implementation does not support Windows. No model API key or paid service is required by this runtime.
 
 Review the code, run the tests, and preview one host:
 
@@ -44,6 +44,8 @@ python3 -B integrate.py --platform claude --core-dir "$HOME/.claude/workflow-hoo
 ```
 
 `--apply` stages backed-up runtime changes; `--apply --enable` also enables the organization policy last. Do not stage against a production core before isolated native acceptance: staging also updates its existing hygiene engine. This preview has not yet passed that acceptance. Integrated cores retain their own input-envelope/error behavior; the standalone event-bound parser does not prove the integrated boundary.
+
+**Measured integration conflict:** the first subscription-only lifecycle trial in each host failed before organization completed. An existing advisory-only wrapper converted guard denials into warnings. This is not successful enforcement. A warning containing the expected reason is insufficient: preflight must assert the actual native denial/block decision, then prove the file tool did not write. Do not remove an operator's advisory policy silently or enable this upgrade over that conflict.
 
 Uninstall removes only exact owned hook groups:
 
