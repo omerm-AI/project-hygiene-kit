@@ -17,3 +17,23 @@ Builders used bounded gpt-6-sol/medium assignments; native-controller preparatio
 The first real trial per host failed at consent flow: the integrated operator core already contained an advisory-only transformation. Claude Code used claude-haiku-5-5 and forwarded six subscription requests; Codex used gpt-6-luna and started three native turns, with no measurable provider request counter. No API-key fallback was used. Preparation incorrectly accepted warning text as denial evidence. Future negative checks must require the native decision shape, actual file-tool identity, unchanged project bytes and source/session-bound receipts. Repeating the same model test without correcting that preparation would waste quota.
 
 Both watchdogs exited successfully; all frozen operator source hashes and settings were restored. Persistent activation remains withheld. The operator's advisory policy must be reconciled explicitly before any attempt to replace it. Four anonymous public-clone old/new installed-command scenarios passed without model requests; they are not native host evidence.
+
+## Approved scope clarification and second native attempt
+
+The operator explicitly approved hygiene enforcement until its code review passes, while resource/load/concurrency checks remain advisory. This supersedes the earlier advisory-only choice for hygiene alone; it does not restore unrelated planning or resource blocks.
+
+1. gpt-6-sol/medium implements a typed, in-process hygiene decision boundary in the existing-core integrator, preserving non-hygiene advisories and older public cores. The selected lead checks actual callback subprocess output and compatibility.
+2. gpt-6.1-sol/high prepares a fresh isolated second-attempt directory, removing environmental SDK plugins and checking the actual tool catalog before inference. Negative tests must provoke a real native file edit, assert its host-specific structural block and unchanged files before continuing. The Codex normalized native format is `status=blocked` plus feedback, event and source, rather than Claude's raw JSON response.
+3. Native trials remain subscription-only, with at most two further meaningful attempts per host. The next Claude lifecycle is capped at 18 forwarded requests; Codex is capped at seven native turns with provider request count unavailable. Failed artifacts remain intact, and watchdog restoration precedes any retry.
+
+No production activation follows from local tests alone. Independent review, actual native lifecycle evidence, deployed source hashes and updated public acceptance are required before reporting rollout.
+
+## Measured second trial and final preparation
+
+The lead independently ran 86 package tests and 247 legacy tests. A focused Astra review verified the typed split and reproduced an installer race between staged writes. The repaired installer checks each expected intermediate state; Astra's original injection now preserves the foreign edit, refuses installation and rolls back its own changes. This is checked recovery, not an OS-wide atomic compare-and-swap guarantee.
+
+Claude trial two forwarded seven subscription requests. It proved the actual pre-consent Write denial and unchanged bytes, with exactly three file/shell tools and no MCP. After exact consent, the model did not execute the bare inventory command; organization stayed incomplete and Stop blocked. Codex trial two used one baseline turn and then failed because prepared.json was missing. All operator sources/settings were restored in both hosts. One meaningful native attempt remains per host; a fourth requires operator review.
+
+Before that final attempt, the hook's next action now explicitly says Run Bash within 58 characters. Inventory feedback supplies the complete guide schema, and completion feedback names phase=postflight. Independent review parsed all five follow-up commands, verified the 737-character inventory feedback and confirmed unchanged consent/owner gates. A model-free native witness must verify actual model-context delivery; the third controller must verify every preexisting artifact before starting a client.
+
+The final prepared Claude cap is 23 forwards: baseline 1, deliberate denied edit 1, consent flow 6, first save/next-denial 4, postflight/resume 3, fresh session 1, empty-root flow 7. These bounds include required inspection calls and one bootstrap correction; unused requests are not sent. Codex remains seven turns with 65-second deadlines and no provider request counter. No failed upgrade has been persistently deployed.

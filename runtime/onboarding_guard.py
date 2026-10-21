@@ -240,7 +240,7 @@ def _question(token):
 
 
 def _next_inventory():
-    message = "[ORG] workflow-hygiene onboarding-inventory '{}'"
+    message = "[ORG] Run Bash: workflow-hygiene onboarding-inventory '{}'"
     if len(message) > 60:
         raise ValueError('next action exceeds native context bound')
     return {'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit',
@@ -507,7 +507,12 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                     return None if match.group(1) == 'דלג' else _next_inventory()
                 return None
             if event == 'Stop':
-                return None if phase == 'awaiting' else _deny(payload, 'organization awaits verified completion')
+                if phase == 'awaiting':
+                    return None
+                next_step = ("Run Bash: workflow-hygiene onboarding-inventory '{}'. Follow its tool feedback."
+                             if 'pages' not in data else
+                             "Continue reviewed transfers and contextual guide; finish via Bash: workflow-hygiene onboarding-complete '{}'.")
+                return _deny(payload, 'organization awaits verified completion. ' + next_step)
             if phase == 'awaiting':
                 if native_edit or action in gated:
                     raise ValueError('explicit native prompt consent required')
@@ -532,15 +537,17 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 elif _inventory(root) != _load_pages(state.parent, root, identity, data):
                     raise ValueError('frozen inventory changed')
                 return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
-                    ' files. Next inspect chosen paths: workflow-hygiene inspect '
-                    "'{\"paths\":[\"REL\"]}'; bounded text: workflow-hygiene read "
-                    "'{\"path\":\"REL\"}'. Review chosen candidates only: workflow-hygiene review "
+                    ' files. Inspect: workflow-hygiene inspect '
+                    "'{\"paths\":[\"REL\"]}'; text: workflow-hygiene read "
+                    "'{\"path\":\"REL\"}'. Then workflow-hygiene review "
                     "'{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
                     "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
                     "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
-                    'For archive/superseded add canonical and canonical_sha256; '
-                    'superseded also needs history_evidence. Unchanged files may stay in place. '
-                    "Then workflow-hygiene guide with real project context and onboarding-complete '{}';")
+                    'Archive/superseded require canonical,canonical_sha256; superseded also history_evidence. '
+                    "Then workflow-hygiene guide '{\"purpose\":\"...\",\"roles\":[{\"path\":\"REL\",\"purpose\":\"...\"}],"
+                    "\"entrypoints\":[{\"path\":\"REL\",\"purpose\":\"...\"}],\"maintenance_notes\":[\"...\"],\"language\":\"en\"}'. "
+                    "Finally workflow-hygiene onboarding-complete '{}'. Run each command via Bash; "
+                    'accepted-by-code denial is success. Leave uncertain files unchanged.')
             if action == 'onboarding-complete':
                 if body != {}:
                     raise ValueError('completion requires empty object')
@@ -555,7 +562,8 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                     "workflow-hygiene review '{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep\","
                     "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
                     "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
-                    'After the save, review the changed file again to clear pending postflight;')
+                    'After the save, inspect its fresh hash, then repeat review with "phase":"postflight" '
+                    'to clear pending postflight. A not-yet-existing file uses sha256:null;')
             if action == 'review':
                 if 'pages' not in data:
                     raise ValueError('explicit inventory required before review')

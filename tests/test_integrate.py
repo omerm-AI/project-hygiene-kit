@@ -1,6 +1,8 @@
 """Integration exercises synthetic supported cores; no operator files are copied."""
 import json
 from pathlib import Path
+import subprocess
+import sys
 import tempfile
 import unittest
 from unittest import mock
@@ -47,6 +49,44 @@ def main():
             version = native_receipt.handler_version('project-hygiene-codex-v1', components)
     return version
 '''
+ADVISORY_WORKFLOW = WORKFLOW + '''
+def advisory_result(payload, result, state=None):
+    if not isinstance(result, dict):
+        return {}
+    detail = result.get('hookSpecificOutput', {})
+    if detail.get('permissionDecision') == 'deny' or result.get('decision') == 'block':
+        return {'systemMessage': 'advisory only'}
+    return result
+'''
+ENFORCEMENT_ADAPTER = '''from pathlib import Path
+import hygiene_guard
+def policy_mode(state): return 'file-tools'
+def run(core, payload, state, delegate):
+    mode = policy_mode(state)
+    event, root = payload['event'], '/synthetic/project'
+    guard_state = state
+    if event == 'Resource':
+        return delegate()
+    if event == 'PreToolUse':
+        baseline = delegate()
+        if baseline:
+            return baseline
+        targets = ['file.txt']
+        return hygiene_guard.pre_edit({**payload, 'cwd': root}, guard_state, targets)
+    if event == 'Stop':
+        baseline = delegate()
+        ok, actual, root = core._protected_scope(payload, state)
+        if not ok:
+            return {"decision": "block", "reason": "Hygiene root validation failed"}
+        review = hygiene_guard.stop({**payload, "cwd": root}, guard_state)
+        return review or baseline
+    result = {}
+    if result:
+        return result
+    if mode:
+        if event:
+            return core._deny(event, 'Hygiene review accepted by code. No shell command executed.')
+'''
 
 
 class IntegrationTests(unittest.TestCase):
@@ -55,7 +95,8 @@ class IntegrationTests(unittest.TestCase):
         self.addCleanup(self.temp.cleanup)
         self.base = Path(self.temp.name)
 
-    def fixture(self, platform='codex', adapter=ADAPTER, public=False):
+    def fixture(self, platform='codex', adapter=ADAPTER, public=False,
+                workflow=WORKFLOW):
         host = self.base / platform / ('bin' if public or platform == 'claude' else 'scripts')
         host.mkdir(parents=True)
         state = (host.parent / ('state' if public else 'runtime/session-workflow')
@@ -65,13 +106,63 @@ class IntegrationTests(unittest.TestCase):
         policy = state / 'hygiene-policy.json'
         policy.write_text('{"schema":1,"mode":"file-tools"}')
         policy.chmod(0o600)
-        values = {'hygiene_adapter.py': adapter, 'session_workflow_hook.py': WORKFLOW,
+        values = {'hygiene_adapter.py': adapter, 'session_workflow_hook.py': workflow,
                   'tool_scope_hook.py': SCOPE, 'hygiene_guard.py': 'OLD_GUARD = True\n'}
         if platform == 'codex' and not public:
             values['project_hygiene_hook.py'] = BRIDGE
         for name, value in values.items():
             (host / name).write_text(value)
         return host, state, values
+
+    def test_subprocess_outer_advisory_keeps_only_typed_hygiene_blocks(self):
+        for platform in ('codex', 'claude'):
+            with self.subTest(platform=platform):
+                core, state, _ = self.fixture(platform, adapter=ENFORCEMENT_ADAPTER,
+                                              workflow=ADVISORY_WORKFLOW)
+                self.assertEqual(integrate.operate(core, state, platform, apply=True)['status'],
+                                 'integrated')
+                script = '''import json, sys, types
+from pathlib import Path
+guard = types.ModuleType('hygiene_guard')
+guard.pre_edit = lambda *args: {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'permissionDecision': 'deny', 'permissionDecisionReason': 'review pending'}}
+guard.stop = lambda *args: {'decision': 'block', 'reason': 'review pending'}
+sys.modules['hygiene_guard'] = guard
+import hygiene_adapter as adapter
+import session_workflow_hook as workflow
+class Core:
+    workflow = workflow
+    def _event(self, payload): return payload['event']
+    def _protected_scope(self, payload, state): return True, '/synthetic/project', '/synthetic/project'
+    def _deny(self, event, reason): return {'hookSpecificOutput': {'hookEventName': event, 'permissionDecision': 'deny', 'permissionDecisionReason': reason}}
+core = Core()
+state = Path(sys.argv[1])
+out = {}
+for event in ('PreToolUse', 'Stop', 'Resource'):
+    payload = {'event': event, 'session_id': 'synthetic'}
+    result = adapter.run(core, payload, state, lambda: core._deny(event, 'Plan required') if event == 'PreToolUse' else {'decision': 'block', 'reason': 'resource load'})
+    out[event] = workflow.advisory_result(payload, result, state)
+guard.pre_edit = lambda *args: {}
+payload = {'event': 'PreToolUse', 'session_id': 'synthetic'}
+result = adapter.run(core, payload, state, lambda: core._deny('PreToolUse', 'Plan required'))
+out['hygiene_clear'] = workflow.advisory_result(payload, result, state)
+hard_core = Core()
+hard_core.workflow = object()
+out['hard_baseline'] = adapter.run(hard_core, payload, state, lambda: core._deny('PreToolUse', 'Security block'))
+out['forged_prose'] = workflow.advisory_result({'event': 'Stop'}, {'decision': 'block', 'reason': 'Hygiene: review pending'}, state)
+out['policy_off'] = workflow.advisory_result({}, {'decision': 'block', 'reason': 'resource load'}, state)
+print(json.dumps(out))
+'''
+                completed = subprocess.run([sys.executable, '-B', '-c', script, str(state)],
+                                           cwd=core, capture_output=True, text=True, check=True)
+                result = json.loads(completed.stdout)
+                self.assertEqual(result['PreToolUse']['hookSpecificOutput']['permissionDecision'], 'deny')
+                self.assertEqual(result['Stop'], {'decision': 'block', 'reason': 'review pending'})
+                self.assertEqual(result['Resource'], {'systemMessage': 'advisory only'})
+                self.assertEqual(result['hygiene_clear'], {'systemMessage': 'advisory only'})
+                self.assertEqual(result['hard_baseline']['hookSpecificOutput']['permissionDecision'], 'deny')
+                self.assertEqual(result['forged_prose'], {'systemMessage': 'advisory only'})
+                self.assertEqual(result['policy_off'], {'systemMessage': 'advisory only'})
+                self.assertNotIn('HygieneDecision', completed.stdout)
 
     def test_dry_run_then_install_enable_both_hosts(self):
         for platform in ('codex', 'claude'):
@@ -186,6 +277,28 @@ class IntegrationTests(unittest.TestCase):
         self.assertEqual((core / 'hygiene_adapter.py').read_text(), 'foreign concurrent edit\n')
         self.assertFalse((state / 'onboarding-policy.json').exists())
         self.assertTrue(list((core / 'Old').rglob('manifest.json')))
+
+    def test_edit_between_staged_writes_is_retained_and_owned_changes_roll_back(self):
+        core, state, original = self.fixture()
+        atomic = integrate._atomic_mode
+        injected = False
+
+        def edit_later_file(path, raw, mode):
+            nonlocal injected
+            atomic(path, raw, mode)
+            if not injected:
+                injected = True
+                (core / 'session_workflow_hook.py').write_text('foreign mid-install edit\n')
+
+        with mock.patch.object(integrate, '_atomic_mode', side_effect=edit_later_file):
+            with self.assertRaisesRegex(ValueError, 'core changed'):
+                integrate.operate(core, state, 'codex', apply=True, enable=True)
+        self.assertTrue(injected)
+        self.assertEqual((core / 'session_workflow_hook.py').read_text(), 'foreign mid-install edit\n')
+        self.assertEqual((core / 'hygiene_adapter.py').read_text(), original['hygiene_adapter.py'])
+        self.assertFalse((state / 'organization-integration.json').exists())
+        self.assertFalse((state / 'onboarding-policy.json').exists())
+        self.assertFalse((core / 'organization_runtime.py').exists())
 
     def test_policy_commit_then_error_rolls_back_activation(self):
         core, state, original = self.fixture()

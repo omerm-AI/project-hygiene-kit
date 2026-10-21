@@ -4,6 +4,8 @@ A local, model-free hook runtime for Codex and Claude Code. It asks before organ
 
 **Preview: native acceptance for this upgrade remains open.** Unit tests and saved settings do not prove host execution. See [acceptance](docs/acceptance.md) before deploying or sharing with clients.
 
+The approved integration separates hygiene enforcement from resource advice: a code-created hygiene denial remains blocking, while an existing advisory core keeps its planning/load/resource assessments advisory. A serialized dictionary or a warning containing the word "Hygiene" cannot acquire blocking authority. Installation does not silently replace an operator's policy choice.
+
 ## What changes
 
 1. Existing project: the first delivered user prompt asks for organization consent. Installation does not reorganize old folders.
@@ -46,6 +48,8 @@ python3 -B integrate.py --platform claude --core-dir "$HOME/.claude/workflow-hoo
 `--apply` stages backed-up runtime changes; `--apply --enable` also enables the organization policy last. Do not stage against a production core before isolated native acceptance: staging also updates its existing hygiene engine. This preview has not yet passed that acceptance. Integrated cores retain their own input-envelope/error behavior; the standalone event-bound parser does not prove the integrated boundary.
 
 **Measured integration conflict:** the first subscription-only lifecycle trial in each host failed before organization completed. An existing advisory-only wrapper converted guard denials into warnings. This is not successful enforcement. A warning containing the expected reason is insufficient: preflight must assert the actual native denial/block decision, then prove the file tool did not write. Do not remove an operator's advisory policy silently or enable this upgrade over that conflict.
+
+That integration boundary has since passed local and independent source checks. A second actual Claude Code trial proved pre-consent Write blocking, but automatic organization did not finish. The second Codex trial exposed a missing controller preparation file before activation. The full upgrade remains unapproved for persistent activation. These distinct outcomes are recorded in the acceptance table rather than treated as a successful rollout.
 
 Uninstall removes only exact owned hook groups:
 

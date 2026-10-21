@@ -37,11 +37,58 @@ def _function(source, name, args):
         raise ValueError('unsupported core function: ' + name)
 
 
+def _mark_run_denials(source):
+    """Tag adapter-owned denials while leaving delegated baseline results plain."""
+    run = next(node for node in ast.parse(source).body
+               if isinstance(node, ast.FunctionDef) and node.name == 'run')
+    lines = source.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+    edits = []
+    for node in ast.walk(run):
+        if not isinstance(node, ast.Return) or not isinstance(node.value, ast.Call):
+            continue
+        call = node.value
+        if (not isinstance(call.func, ast.Attribute) or call.func.attr != '_deny' or
+                not isinstance(call.func.value, ast.Name) or call.func.value.id != 'core'):
+            continue
+        # Ledger parsing belongs to the pre-existing workflow policy.
+        if any(isinstance(arg, ast.Subscript) and isinstance(arg.value, ast.Name)
+               and arg.value.id == 'parsed' for arg in call.args):
+            continue
+        begin = offsets[call.lineno - 1] + call.col_offset
+        end = offsets[call.end_lineno - 1] + call.end_col_offset
+        edits.append((begin, end))
+    for begin, end in sorted(edits, reverse=True):
+        source = source[:begin] + '_hygiene_decision(' + source[begin:end] + ')' + source[end:]
+    return source
+
+
 def _adapter(source):
     _function(source, 'run', ('core', 'payload', 'state', 'delegate'))
     if MARK in source:
         raise ValueError('unowned integration marker')
     helper = '''\n# project-hygiene-kit organization integration v1
+class HygieneDecision(dict):
+    """In-process provenance; never serialized into the native hook response."""
+
+
+def _hygiene_decision(result):
+    return HygieneDecision(result) if isinstance(result, dict) and result else result
+
+
+def _blocking_decision(result):
+    detail = result.get('hookSpecificOutput', {}) if isinstance(result, dict) else {}
+    return (isinstance(detail, dict) and detail.get('permissionDecision') == 'deny') or (
+        isinstance(result, dict) and (result.get('decision') == 'block' or result.get('continue') is False))
+
+
+def _baseline_after_advisory(core, payload, state, result):
+    advisory = getattr(getattr(core, 'workflow', None), 'advisory_result', None)
+    return advisory(payload, result, state=state) if callable(advisory) else result
+
+
 def _organization_entry(core, payload, state):
     policy = state / 'onboarding-policy.json'
     if not policy.exists() and not policy.is_symlink():
@@ -77,19 +124,55 @@ def _organization_entry(core, payload, state):
                 except Exception as exc:
                     return core._deny(event, 'Organization post-review unavailable: ' + type(exc).__name__)
 '''
-    return _replace(source, accepted, refresh + accepted)
+    source = _replace(source, accepted, refresh + accepted)
+    # The workflow's advisory wrapper sees only this in-process type. Mark
+    # decisions at their source, never by matching human-readable reason text.
+    source = _replace(source, '        return organization_result\n',
+                      '        return _hygiene_decision(organization_result)\n')
+    source = _replace(source, "            return core._deny(event, 'Hygiene review accepted by code. No shell command executed.')",
+                      "            return _hygiene_decision(core._deny(event, 'Hygiene review accepted by code. No shell command executed.'))")
+    if 'hygiene_guard.pre_edit(' in source:
+        if 'handler = hygiene_guard.restore if action == ' in source:
+            source = _replace(source, '            if result:\n                return result\n',
+                              '            if result:\n                return _hygiene_decision(result)\n')
+        source = _replace(source, '        return hygiene_guard.pre_edit({**payload, \'cwd\': root}, guard_state, targets)\n',
+                          '        return _hygiene_decision(hygiene_guard.pre_edit({**payload, \'cwd\': root}, guard_state, targets))\n')
+        source = _replace(source, '        return review or baseline\n',
+                          '        return _hygiene_decision(review) if review else baseline\n')
+        source = _replace(source, '            return {"decision": "block", "reason": "Hygiene root validation failed"}\n',
+                          '            return _hygiene_decision({"decision": "block", "reason": "Hygiene root validation failed"})\n')
+        if '        if baseline:\n            return baseline\n' in source:
+            source = _replace(source, '        if baseline:\n            return baseline\n',
+                              '        baseline = _baseline_after_advisory(core, payload, state, baseline)\n        if _blocking_decision(baseline):\n            return baseline\n')
+            source = _replace(source,
+                              "        return _hygiene_decision(hygiene_guard.pre_edit({**payload, 'cwd': root}, guard_state, targets))\n",
+                              "        hygiene_result = hygiene_guard.pre_edit({**payload, 'cwd': root}, guard_state, targets)\n        return _hygiene_decision(hygiene_result) if hygiene_result else baseline\n")
+    return _mark_run_denials(source)
 
 
 def _workflow(source):
     _function(source, '_prompt', ('p',))
     if MARK in source:
         raise ValueError('unowned integration marker')
-    return _replace(source, 'def _prompt(p):\n', '''def _prompt(p):
+    source = _replace(source, 'def _prompt(p):\n', '''def _prompt(p):
     # project-hygiene-kit organization integration v1
     if (STATE / 'onboarding-policy.json').exists() or (STATE / 'onboarding-policy.json').is_symlink():
         import onboarding_guard
         if onboarding_guard.prompt_suppressed(p, STATE):
             return {}
+''')
+    if not any(isinstance(node, ast.FunctionDef) and node.name == 'advisory_result'
+               for node in ast.parse(source).body):
+        return source
+    _function(source, 'advisory_result', ('payload', 'result', 'state'))
+    anchor = '    if not isinstance(result, dict):\n        return {}\n'
+    return _replace(source, anchor, '''    if not isinstance(result, dict):
+        return {}
+    # Only a code-created adapter decision can retain a hygiene denial/block.
+    # Convert to a plain dict before native JSON output; no provenance field leaks.
+    import hygiene_adapter
+    if type(result) is hygiene_adapter.HygieneDecision:
+        return dict(result)
 ''')
 
 
@@ -289,12 +372,20 @@ def operate(core_dir: Path, state_dir: Path, platform: str, *, apply=False, enab
         'schema': 1, 'platform': platform,
         'files': {name: _sha(raw) for name, raw in patched.items()}})
     owned_policy = install._encoded(install.POLICY)
+    expected_current = dict(current)
     try:
         for name, raw in patched.items():
             if raw != current.get(name):
+                # A foreign edit can arrive after an earlier file was written.
+                # Validate the whole expected intermediate state before each
+                # replacement; rollback below preserves anything we do not own.
+                _unchanged(core, state, expected_current, raw_manifest, policy_raw, active_raw)
                 _atomic_mode(core / name, raw, modes.get(name, 0o600))
+                expected_current[name] = raw
+        _unchanged(core, state, expected_current, raw_manifest, policy_raw, active_raw)
         install._atomic(manifest_path, owned_manifest)
         if enable:
+            _unchanged(core, state, expected_current, owned_manifest, policy_raw, active_raw)
             install._atomic(activation, owned_policy)
     except Exception:
         # A write can commit and then report a sync error. Deactivate only our
