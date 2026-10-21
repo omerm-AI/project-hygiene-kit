@@ -24,6 +24,151 @@ EXCLUDED = {'old', '.git', 'node_modules', '.venv', '.ssh', '.codex',
 SENSITIVE = ('secret', 'credential', 'password', 'token', 'private',
              'transcript', '.env', '.pem', '.key', 'id_rsa', 'id_ed25519', 'auth')
 
+# Detector-scoped evidence, never a general semantic history verifier. Only
+# short native-user spans are retained; files/transcripts are not read here.
+HISTORY_VERSION = 'native-replacement-v1'
+_HISTORY_PATH = r'[\w][\w./-]{0,119}\.[\w]{1,12}'
+_REPLACEMENT = re.compile(
+    r'(?<![\w./\\:-])(?P<old>' + _HISTORY_PATH + r')\s+'
+    r'(?:(?:was|is)\s+(?:(?:the\s+)?(?:prior|previous|old)\s+[^.\n!?]{0,70}?,\s*)?)?'
+    r'(?:replaced\s+by|superseded\s+by|הוחלף\s+ב[־-]?|הוחלפה\s+ב[־-]?)\s*'
+    r'(?P<canonical>' + _HISTORY_PATH + r')(?![\w/\\:-]|\.(?=\w))', re.I)
+_UNCERTAIN = re.compile(
+    r'\b(if|unless|not|never|assume|example|quoted|quote|false|incorrect|retracted|hypothetical|maybe)\b'
+    r'|(?:אם|אולי|לא |דוגמה|ציטוט|שגוי|בוטל)', re.I)
+
+
+def _history(data):
+    records = data.get('native_history', {})
+    if not isinstance(records, dict) or len(records) > 8:
+        raise ValueError('native history exceeds bounded evidence')
+    for key, record in records.items():
+        if (not isinstance(record, dict) or record.get('detector') != HISTORY_VERSION
+                or record.get('status') not in {'candidate', 'ambiguous', 'retained', 'confirmed'}
+                or not isinstance(record.get('clause'), str) or len(record['clause']) > 240
+                or key != hashlib.sha256(record['clause'].encode()).hexdigest()[:16]
+                or not all(isinstance(record.get(k), str) and record[k]
+                           for k in ('old', 'canonical', 'source_session', 'source_turn'))):
+            raise ValueError('invalid native history record')
+    return records
+
+
+def _capture_history(data, payload, root, sid, turn):
+    if _event(payload) != 'UserPromptSubmit' or payload.get('agent_id'):
+        return
+    prompt = payload.get('prompt')
+    if not isinstance(prompt, str) or len(prompt) > 32768:
+        return
+    records = dict(_history(data))
+    for match in _REPLACEMENT.finditer(prompt):
+        clause = match.group()
+        if len(clause) > 240:
+            continue
+        old, canonical = match.group('old'), match.group('canonical')
+        try:
+            if (hg._rel(root, old) != old or hg._rel(root, canonical) != canonical
+                    or old == canonical or _excluded(old) or _excluded(canonical)):
+                continue
+        except ValueError:
+            continue
+        # Conditions, negation, quotations and retractions are unresolved cues.
+        # They cannot authorize a transfer through a model declaration.
+        prefix = re.split(r'(?<=[.!?])\s+|\n', prompt[:match.start()])[-1][-160:]
+        suffix = re.split(r'(?<=[.!?])\s+|\n', prompt[match.end():], maxsplit=1)
+        surrounding = prefix + clause + suffix[0][:160]
+        adjacent_retraction = len(suffix) > 1 and re.match(
+            r'(?:That|This|The) (?:claim|assertion|statement) is (?:false|incorrect|retracted)',
+            suffix[1], re.I)
+        ambiguous = bool(_UNCERTAIN.search(surrounding) or any(
+            symbol in surrounding for symbol in ('"', '`', '“', '”', '> ', '?'))
+            or adjacent_retraction or prompt[:match.start()].count('```') % 2)
+        key = hashlib.sha256(clause.encode()).hexdigest()[:16]
+        if key not in records:
+            records[key] = {'detector': HISTORY_VERSION, 'old': old, 'canonical': canonical,
+                            'clause': clause, 'source_session': sid, 'source_turn': turn,
+                            'status': 'ambiguous' if ambiguous else 'candidate'}
+        elif ambiguous:
+            records[key]['status'] = 'ambiguous'
+            records[key]['qualified_source'] = {'session': sid, 'turn': turn}
+    if len(records) > 8:
+        raise ValueError('too many native replacement cues; request bounded clarification')
+    pairs = {}
+    for record in records.values():
+        if record['status'] != 'retained':
+            pairs.setdefault(record['old'], set()).add(record['canonical'])
+    for record in records.values():
+        if len(pairs.get(record['old'], ())) > 1 and record['status'] != 'retained':
+            record['status'] = 'ambiguous'
+    data['native_history'] = records
+
+
+def _freeze_history(data, root, initial):
+    for record in _history(data).values():
+        if record['status'] == 'retained':
+            continue
+        if 'old_sha256' in record or 'canonical_sha256' in record:
+            if not all(isinstance(record.get(key), str) and re.fullmatch(r'[0-9a-f]{64}', record[key])
+                       for key in ('old_sha256', 'canonical_sha256')):
+                raise ValueError('invalid frozen native history evidence')
+            continue
+        if record['old'] not in initial or record['canonical'] not in initial:
+            raise ValueError('native replacement paths require inventory clarification')
+        if any(_signature(root, record[key]) != initial[record[key]] for key in ('old', 'canonical')):
+            raise ValueError('native history file changed before evidence freeze')
+        record['old_sha256'] = hg._hash(root, record['old'])
+        record['canonical_sha256'] = hg._hash(root, record['canonical'])
+        if any(_signature(root, record[key]) != initial[record[key]] for key in ('old', 'canonical')):
+            raise ValueError('native history file changed during evidence freeze')
+
+
+def _history_review(data, entries):
+    for key, record in _history(data).items():
+        if record['status'] == 'retained':
+            continue
+        for entry in entries:
+            if entry.get('path') == record['canonical'] and entry.get('decision') != 'keep':
+                raise ValueError('native replacement canonical must stay: ' + record['canonical'])
+            if entry.get('path') != record['old']:
+                continue
+            if record['status'] == 'ambiguous':
+                raise ValueError('ambiguous native history; ask user: השאר ' + key + ' / החלף ' + key)
+            if (entry.get('decision') != 'superseded' or
+                    entry.get('canonical') != record['canonical'] or
+                    entry.get('sha256') != record.get('old_sha256') or
+                    entry.get('canonical_sha256') != record.get('canonical_sha256') or
+                    entry.get('history_evidence') != record['clause']):
+                raise ValueError('native history requires superseded with exact canonical/hashes '
+                                 'and history_evidence=' + json.dumps(record['clause']) +
+                                 '; or ask user: השאר ' + key)
+
+
+def _history_hint(data):
+    for key, record in _history(data).items():
+        note = data.get('reviews', {}).get(record['old'], {})
+        if record['status'] == 'retained' or (note.get('decision') == 'superseded'
+                and note.get('history_evidence') == record['clause']):
+            continue
+        if record['status'] == 'ambiguous':
+            return 'Native history ambiguous; ask user השאר ' + key + ' / החלף ' + key + '. '
+        return ('Native history: ' + record['clause'] + '. Source keep is blocked; '
+                'superseded requires history_evidence equal to that exact clause. ')
+    return ''
+
+
+def _history_complete(data, current):
+    for key, record in _history(data).items():
+        if record['status'] == 'retained':
+            continue
+        if record['status'] == 'ambiguous' or record['old'] in current:
+            raise ValueError('native history disposition unresolved: ' + record['old'] +
+                             '; native user may retain via השאר ' + key)
+        note = data.get('reviews', {}).get(record['old'], {})
+        if (note.get('decision') != 'superseded' or note.get('canonical') != record['canonical']
+                or note.get('sha256') != record.get('old_sha256')
+                or note.get('canonical_sha256') != record.get('canonical_sha256')
+                or note.get('history_evidence') != record['clause']):
+            raise ValueError('native history disposition evidence mismatch')
+
 
 def _event(payload):
     return payload.get('hook_event_name', payload.get('event'))
@@ -332,6 +477,7 @@ def _complete(data, state_dir, root, identity, sid, guard_dir):
     if guard.get('pending') or owner.get('pending'):
         raise ValueError('guard review pending')
     current = _inventory(root)
+    _history_complete(data, current)
     reviewed = guard.get('reviewed', {})
     new_assets = set()
     for rel, signature in initial.items():
@@ -479,6 +625,7 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 data = {'root': str(root), 'identity': identity, 'generation': 'v1',
                         'phase': 'awaiting', 'token': token, 'created_turn': turn,
                         'asker_sid': sid}
+                _capture_history(data, payload, root, sid, turn)
                 hg._write(path, data)
                 return _question(token)
             phase = data['phase']
@@ -486,12 +633,32 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 if action in {'onboarding-inventory', 'onboarding-complete'}:
                     raise ValueError('onboarding is already ' + phase)
                 return None
+            if event == 'UserPromptSubmit' and not payload.get('agent_id'):
+                if phase == 'organizing' and sid == data.get('owner_sid'):
+                    override = re.fullmatch(r'(השאר|החלף) ([0-9a-f]{16})', str(payload.get('prompt', '')))
+                    if override:
+                        record = _history(data).get(override.group(2))
+                        if not record:
+                            raise ValueError('unknown native history decision')
+                        record['status'] = 'retained' if override.group(1) == 'השאר' else 'confirmed'
+                        record['native_decision'] = {'session': sid, 'turn': turn}
+                        hg._write(path, data)
+                        return {'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit',
+                                'additionalContext': '[ORG] Native history decision recorded; continue reviews.'}}
+                if sid == data.get('owner_sid', data.get('asker_sid')):
+                    before = _digest(data.get('native_history', {}))
+                    _capture_history(data, payload, root, sid, turn)
+                    if before != _digest(data.get('native_history', {})):
+                        if 'pages' in data:
+                            _freeze_history(data, root, _load_pages(state.parent, root, identity, data))
+                        hg._write(path, data)
             if event == 'UserPromptSubmit' and phase == 'awaiting' and not payload.get('agent_id'):
                 if action in gated:
                     raise ValueError('explicit native prompt consent required')
                 if sid != data.get('asker_sid'):
                     token = secrets.token_hex(4)
                     data.update(token=token, created_turn=turn, asker_sid=sid)
+                    _capture_history(data, payload, root, sid, turn)
                     hg._write(path, data)
                     return _question(token)
                 prompt = payload.get('prompt')
@@ -533,9 +700,20 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                     data['guard_mark'] = _mark(guard)
                     data['reviews'] = {}
                     data['candidates'] = {}
+                    _freeze_history(data, root, initial)
                     hg._write(path, data)
                 elif _inventory(root) != _load_pages(state.parent, root, identity, data):
                     raise ValueError('frozen inventory changed')
+                history_hint = _history_hint(data)
+                if history_hint:
+                    return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
+                        ' files. ' + history_hint + 'Run Bash workflow-hygiene inspect '
+                        "'{\"paths\":[\"REL\"]}', then workflow-hygiene review "
+                        "'{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
+                        "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
+                        "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
+                        'Superseded also needs canonical,canonical_sha256,history_evidence. '
+                        'Then guide and onboarding-complete; accepted-by-code denial is success.')
                 return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
                     ' files. Inspect: workflow-hygiene inspect '
                     "'{\"paths\":[\"REL\"]}'; text: workflow-hygiene read "
@@ -572,6 +750,13 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 candidates = {}
                 if not isinstance(entries, list) or len(entries) > hg.MAX_PATHS:
                     raise ValueError('bounded review entries required')
+                if any(not isinstance(entry, dict) for entry in entries):
+                    raise ValueError('invalid review entry')
+                entries = [{**entry, 'path': hg._rel(root, entry.get('path')),
+                            **({'canonical': hg._rel(root, entry['canonical'])}
+                               if 'canonical' in entry else {})} for entry in entries]
+                body = {**body, 'entries': entries}
+                _history_review(data, entries)
                 for entry in entries:
                     if not isinstance(entry, dict):
                         raise ValueError('invalid review entry')
@@ -606,9 +791,10 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 data.setdefault('candidates', {}).update(candidates)
                 _collect(data, root, sid, guard_state_dir, initial)
                 hg._write(path, data)
-                return _accepted(payload, 'Hygiene review saved. Continue bounded reviews for chosen '
-                    'candidates, then workflow-hygiene guide with JSON keys purpose, roles, '
-                    'entrypoints, maintenance_notes, language and real project values; finally '
+                return _accepted(payload, 'Hygiene review saved. ' + _history_hint(data) +
+                    'Continue chosen reviews, then workflow-hygiene guide '
+                    "'{\"purpose\":\"...\",\"roles\":[{\"path\":\"REL\",\"purpose\":\"...\"}],"
+                    "\"entrypoints\":[{\"path\":\"REL\",\"purpose\":\"...\"}],\"maintenance_notes\":[\"...\"],\"language\":\"en\"}'. Finally "
                     "workflow-hygiene onboarding-complete '{}';")
             if action == 'restore':
                 if 'pages' not in data:

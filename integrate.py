@@ -102,11 +102,15 @@ def _organization_entry(core, payload, state):
             raise ValueError('protected project root unavailable')
         return organization.addon({**payload, 'cwd': root}, state, actual)
     except Exception as exc:
+        reason = 'Organization validation unavailable: ' + type(exc).__name__
+        if isinstance(exc, ValueError) and str(exc) == 'Malformed hygiene sentinel':
+            reason = ("Malformed hygiene sentinel: close the single quote around JSON. "
+                      "Use exactly workflow-hygiene ACTION '<JSON>'. No shell command executed.")
         if event == 'PreToolUse':
-            return core._deny(event, 'Organization validation unavailable: ' + type(exc).__name__)
+            return core._deny(event, reason)
         if event == 'Stop':
-            return {'decision': 'block', 'reason': 'Organization validation unavailable: ' + type(exc).__name__}
-        return {'systemMessage': 'Organization validation unavailable: ' + type(exc).__name__}
+            return {'decision': 'block', 'reason': reason}
+        return {'systemMessage': reason}
 
 '''
     source = _replace(source, 'def run(core, payload, state, delegate):',

@@ -277,6 +277,161 @@ class OnboardingTests(unittest.TestCase):
             self.assertIn('accepted by code', str(result))
         self.assertTrue(refused, 'a late batch should be refused before private state overflows')
 
+    def history_fixture(self, clause='former.md was the prior accepted overview, replaced by current.md'):
+        (self.root / 'former.md').write_bytes(b'Former accepted overview')
+        (self.root / 'current.md').write_bytes(b'Current accepted overview')
+        out = self.invoke(prompt=clause)
+        token = re.search(r'[0-9a-f]{8}', out['hookSpecificOutput']['additionalContext']).group()
+        self.invoke(prompt='סדר ' + token)
+        inventory = self.invoke(command=('onboarding-inventory', {}))
+        self.assertIn('Inventory frozen', str(inventory))
+        return clause
+
+    def history_entry(self, name, decision='keep', **extra):
+        return {'path': name, 'decision': decision,
+                'sha256': hashlib.sha256((self.root / name).read_bytes()).hexdigest(),
+                'reason': 'Reviewed native user history', 'usage': 'Fixture',
+                'dependencies': 'No local references', 'concurrency': 'Sole test owner', **extra}
+
+    def history_state(self):
+        return json.loads(next(self.state.glob('onboarding-' + '[0-9a-f]' * 64 + '.json')).read_text())
+
+    def test_native_history_blocks_false_keep_and_completion(self):
+        self.history_fixture()
+        denied = self.invoke(command=('review', {'entries': [self.history_entry('former.md')]}))
+        self.assertIn('native history requires superseded', str(denied))
+        self.assertTrue((self.root / 'former.md').exists())
+        self.assertIn('disposition unresolved', str(self.invoke(command=('onboarding-complete', {}))))
+
+    def test_native_history_actual_archive_exact_evidence_and_restore(self):
+        clause = self.history_fixture()
+        canonical_hash = self.history_entry('current.md')['sha256']
+        entry = self.history_entry('former.md', 'superseded', canonical='current.md',
+                                   canonical_sha256=canonical_hash, history_evidence='model invented history')
+        self.assertIn('native history requires superseded', str(self.invoke(command=('review', {'entries': [entry]}))))
+        entry['history_evidence'] = clause
+        self.assertIn('accepted by code', str(self.invoke(command=('review', {'entries': [self.history_entry('current.md'), entry]}))))
+        self.assertFalse((self.root / 'former.md').exists())
+        manifest = next((self.root / 'Old').rglob('manifest.json'))
+        note = json.loads(manifest.read_text())
+        self.assertEqual((self.root / note['archive']).read_bytes(), b'Former accepted overview')
+        self.assertIn('accepted by code', str(self.invoke(command=('restore', {'manifest': manifest.relative_to(self.root).as_posix()}))))
+        self.assertIn('native history requires superseded', str(self.invoke(command=('review', {'entries': [self.history_entry('former.md')]}))))
+        self.assertTrue(rejected(self.invoke(command=('onboarding-complete', {}))))
+
+    def test_history_native_retention_override_requires_owning_user(self):
+        self.history_fixture()
+        key = next(iter(self.history_state()['native_history']))
+        self.invoke(prompt='השאר ' + key, sid='other')
+        self.invoke(prompt='השאר ' + key, agent='subagent')
+        self.assertEqual(self.history_state()['native_history'][key]['status'], 'candidate')
+        self.invoke(prompt='השאר ' + key)
+        self.assertEqual(self.history_state()['native_history'][key]['status'], 'retained')
+        self.assertIn('accepted by code', str(self.invoke(command=('review', {'entries': [self.history_entry('former.md')]}))))
+        self.assertIn('accepted by code', str(self.invoke(command=('onboarding-complete', {}))))
+
+    def test_history_uncertain_cues_cannot_authorize_archive(self):
+        for prefix, suffix in [('If ', ''), ('Do not assume ', ''), ('"', '"'), ('', '. That claim is false')]:
+            with self.subTest(prefix=prefix, suffix=suffix):
+                data = {}
+                self.assertEqual(len(data), 0)
+                og._capture_history(data, self.payload(prompt=prefix + 'former.md was replaced by current.md' + suffix), self.root, 'lead', 'native-turn')
+                record = next(iter(data['native_history'].values()))
+                self.assertEqual(record['status'], 'ambiguous')
+                record.update(old_sha256='a' * 64, canonical_sha256='b' * 64)
+                with self.assertRaisesRegex(ValueError, 'ambiguous native history'):
+                    og._history_review(data, [{'path': 'former.md', 'decision': 'superseded'}])
+
+    def test_history_conflicts_sensitive_paths_duplicate_and_chat(self):
+        data = {}
+        payload = self.payload(prompt='former.md was replaced by current.md. former.md was replaced by alternative.md.')
+        og._capture_history(data, payload, self.root, 'lead', 'turn1')
+        self.assertEqual(len(data['native_history']), 2)
+        self.assertTrue(all(r['status'] == 'ambiguous' for r in data['native_history'].values()))
+        og._capture_history(data, payload, self.root, 'lead', 'turn1')
+        self.assertEqual(len(data['native_history']), 2)
+        empty = {}
+        og._capture_history(empty, self.payload(prompt='secret.md was replaced by current.md'), self.root, 'lead', 't')
+        self.assertEqual(empty['native_history'], {})
+        og._capture_history(empty, self.payload(prompt='What time is it?'), self.root, 'lead', 't2')
+        self.assertEqual(empty['native_history'], {})
+
+    def test_history_canonical_hash_and_metadata_changes_fail(self):
+        clause = self.history_fixture()
+        entry = self.history_entry('former.md', 'superseded', canonical='current.md',
+                                   canonical_sha256='0' * 64, history_evidence=clause)
+        self.assertIn('native history requires superseded', str(self.invoke(command=('review', {'entries': [entry]}))))
+        entry['canonical_sha256'] = self.history_entry('current.md')['sha256']
+        (self.root / 'current.md').write_text('Concurrent replacement')
+        self.assertTrue(rejected(self.invoke(command=('review', {'entries': [entry]}))))
+        self.assertTrue((self.root / 'former.md').exists())
+
+    def test_history_normalized_paths_cannot_bypass_dispositions(self):
+        clause = self.history_fixture('If former.md was replaced by current.md')
+        for path in ('./former.md', str(self.root / 'former.md')):
+            entry = self.history_entry('former.md', 'superseded', canonical='./current.md',
+                                       canonical_sha256=self.history_entry('current.md')['sha256'], history_evidence=clause)
+            entry['path'] = path
+            self.assertIn('ambiguous native history', str(self.invoke(command=('review', {'entries': [entry]}))))
+            self.assertTrue((self.root / 'former.md').exists())
+
+    def test_native_qualification_is_not_discarded_on_duplicate_clause(self):
+        data = {}
+        self.capture = lambda text: og._capture_history(data, self.payload(prompt=text), self.root, 'lead', str(self.turn))
+        self.capture('former.md was replaced by current.md')
+        self.assertEqual(next(iter(data['native_history'].values()))['status'], 'candidate')
+        self.capture('Do not assume former.md was replaced by current.md')
+        record = next(iter(data['native_history'].values()))
+        self.assertEqual(record['status'], 'ambiguous')
+        self.assertIn('qualified_source', record)
+
+    def test_history_sentence_scope_and_token_boundaries(self):
+        data = {}
+        og._capture_history(data, self.payload(prompt='Do not substitute Bash or a wrapper. Fixture facts: former.md was the prior accepted overview, replaced by current.md, which is the current canonical. app.py is required.'), self.root, 'lead', 't')
+        self.assertEqual(next(iter(data['native_history'].values()))['status'], 'candidate')
+        for text in ('/former.md was replaced by current.md', '../former.md was replaced by current.md',
+                     'https://site/former.md was replaced by current.md'):
+            other = {}
+            og._capture_history(other, self.payload(prompt=text), self.root, 'lead', 't')
+            self.assertEqual(other['native_history'], {})
+        question = {}
+        og._capture_history(question, self.payload(prompt='former.md was replaced by current.md?'), self.root, 'lead', 't')
+        self.assertEqual(next(iter(question['native_history'].values()))['status'], 'ambiguous')
+
+    def test_new_native_session_prompt_history_is_captured_after_renewal(self):
+        (self.root / 'former.md').write_text('Former')
+        (self.root / 'current.md').write_text('Current')
+        self.ask()
+        out = self.invoke(prompt='former.md was replaced by current.md', sid='new-lead')
+        token = re.search(r'[0-9a-f]{8}', out['hookSpecificOutput']['additionalContext']).group()
+        self.invoke(prompt='סדר ' + token, sid='new-lead')
+        self.invoke(command=('onboarding-inventory', {}), sid='new-lead')
+        self.assertEqual(len(self.history_state()['native_history']), 1)
+        self.assertIn('disposition unresolved', str(self.invoke(command=('onboarding-complete', {}), sid='new-lead')))
+
+    def test_frozen_native_history_survives_new_claim_after_archive(self):
+        (self.root / 'another.md').write_text('Legacy overview beta')
+        (self.root / 'latest.md').write_text('Approved overview beta')
+        clause = self.history_fixture()
+        old_hash = self.history_entry('former.md')['sha256']
+        entry = self.history_entry('former.md', 'superseded', canonical='current.md',
+                                   canonical_sha256=self.history_entry('current.md')['sha256'], history_evidence=clause)
+        self.assertIn('accepted by code', str(self.invoke(command=('review', {'entries': [self.history_entry('current.md'), entry]}))))
+        self.invoke(prompt='another.md was replaced by latest.md')
+        records = self.history_state()['native_history']
+        old_record = next(r for r in records.values() if r['old'] == 'former.md')
+        self.assertEqual(old_record['old_sha256'], old_hash)
+        self.assertEqual(len(records), 2)
+
+    def test_detected_native_history_can_complete_only_after_verified_archive(self):
+        clause = self.history_fixture()
+        entry = self.history_entry('former.md', 'superseded', canonical='current.md',
+                                   canonical_sha256=self.history_entry('current.md')['sha256'], history_evidence=clause)
+        self.assertIn('accepted by code', str(self.invoke(command=('review', {'entries': [self.history_entry('current.md'), entry]}))))
+        self.assertIn('accepted by code', str(self.invoke(command=('onboarding-complete', {}))))
+        self.assertFalse((self.root / 'former.md').exists())
+        self.assertTrue((self.root / 'current.md').exists())
+
 
 if __name__ == '__main__':
     unittest.main()

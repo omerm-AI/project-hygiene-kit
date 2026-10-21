@@ -164,6 +164,30 @@ print(json.dumps(out))
                 self.assertEqual(result['policy_off'], {'systemMessage': 'advisory only'})
                 self.assertNotIn('HygieneDecision', completed.stdout)
 
+    def test_known_native_parser_error_is_actionable_without_exception_leak(self):
+        import types
+        namespace = {}
+        exec(integrate._adapter(ADAPTER), namespace)
+        state = self.base / 'state'
+        state.mkdir()
+        (state / 'onboarding-policy.json').write_text('{}')
+        core = types.SimpleNamespace(
+            _event=lambda payload: payload['hook_event_name'],
+            _protected_scope=lambda payload, state: (True, '/synthetic/project', '/synthetic/project'),
+            _deny=lambda event, reason: {'event': event, 'reason': reason})
+        fake = types.SimpleNamespace(onboarding_guard=types.SimpleNamespace(_policy=lambda state: True))
+        payload = {'hook_event_name': 'PreToolUse'}
+        from runtime import hook
+        bad = {'tool_input': {'command': "workflow-hygiene review '{\"entries\":[]}"}}
+        fake.addon = lambda *args: hook.command(bad)
+        with mock.patch.dict(sys.modules, {'organization_runtime': fake}):
+            result = namespace['_organization_entry'](core, payload, state)
+            self.assertIn('close the single quote', result['reason'])
+            self.assertIn('No shell command executed', result['reason'])
+            fake.addon = mock.Mock(side_effect=ValueError('secret diagnostic must not leak'))
+            result = namespace['_organization_entry'](core, payload, state)
+            self.assertEqual(result['reason'], 'Organization validation unavailable: ValueError')
+
     def test_dry_run_then_install_enable_both_hosts(self):
         for platform in ('codex', 'claude'):
             with self.subTest(platform=platform):

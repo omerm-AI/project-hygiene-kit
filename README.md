@@ -20,6 +20,8 @@ A genuinely new empty folder receives a starter guide on its first delivered nat
 
 No age/name/extension heuristic proves obsolescence. A clearly superseded version requires its own hash, the retained replacement's hash, and explicit available-history evidence. Code verifies filesystem evidence, not the semantic truth of a model's explanation. Uncertain files stay in place.
 
+The current candidate binds detected replacement statements in native user prompts to a separate bounded record. For example, `draft.md was replaced by final.md` prevents a model from silently keeping the detected source. After consent, code freezes both hashes and requires the exact native clause and retained canonical in a `superseded` review. The detector reads no transcripts, stores at most eight short matched spans, and never moves files itself. Its limited English/Hebrew grammar accepts unquoted relative paths; meaning outside that grammar remains unverified. Negation, conditions, questions, quotation and conflicting matches require an explicit native user choice: `השאר ID` retains the source, while `החלף ID` confirms the detected replacement. Only the organizing owner can choose. Restoration remains available and reopens unresolved disposition checks.
+
 ## Install
 
 Requires Python 3.10+ with system timezone data, a supported native hook host, and write access to your own settings. macOS is the tested operating system; other systems remain unverified, and the current POSIX locking implementation does not support Windows. No model API key or paid service is required by this runtime.
@@ -49,7 +51,7 @@ python3 -B integrate.py --platform claude --core-dir "$HOME/.claude/workflow-hoo
 
 **Measured integration conflict:** the first subscription-only lifecycle trial in each host failed before organization completed. An existing advisory-only wrapper converted guard denials into warnings. This is not successful enforcement. A warning containing the expected reason is insufficient: preflight must assert the actual native denial/block decision, then prove the file tool did not write. Do not remove an operator's advisory policy silently or enable this upgrade over that conflict.
 
-That integration boundary has since passed local and independent source checks. Across the three allowed native trials per host, Claude Code proved pre-consent Write blocking and subsequently executed inventory, a verified Assets move, a contextual guide and onboarding completion. However, the model retained an explicitly superseded fixture, so the required cleanup failed. Codex emitted a genuine native block, but the controller did not capture the denied tool's identity and stopped. Normal-save/postflight and new-root lifecycle proof remain open. The full upgrade is unapproved for persistent activation; no fourth trial or production upgrade was performed.
+That integration boundary passed local and independent source checks. After three initial trials, one additional trial was explicitly authorized per host. Claude captured native replacement facts but produced two review commands with a missing closing quote; parsing failed before transfers or guide creation. A later local repair exposes that known parser diagnostic without weakening validation or correcting commands automatically. Codex delivered the hook question, but the model attempted no edit; native input identity capture and the remaining lifecycle were not exercised. Both additional attempts are consumed. The full upgrade remains unapproved for persistent activation.
 
 **Semantic limit:** code checks declared decisions and filesystem evidence; it cannot guarantee that a model labels every obsolete file correctly from conversation history. The failed retained fixture is evidence of that limit. Do not present this preview as a completely verified client deployment.
 
@@ -70,3 +72,7 @@ The runtime has no model client, network client or transcript crawler. Native pr
 **Known gaps:** ordinary shell, connectors/MCP, background processes and callbacks the host never delivers. Dependency checks are bounded and conservative; arbitrary external/dynamic dependencies are not universally verified. This is not universal OS write protection. Cowork and ordinary GPT are outside this package's proven native scope.
 
 Archival month currently uses Asia/Jerusalem. Inventory is bounded to 5,000 eligible files/paths; transfer candidates remain bounded to 16 MiB each. Unsupported or unsafe cases refuse transfer. See [file roles](docs/file-taxonomy.md) and [contracts](docs/CONTRACT.md).
+
+## Isolation finding from the additional trial
+
+Both hosts received context from unrelated global hooks. Removing instruction files, disabling connectors, or setting empty developer instructions does not prove that the model received only the target hook. Future disposable test profiles must allowlist the intended callbacks and verify effective context before another subscription request. A model declining an unapproved edit is not proof that a native tool was blocked. This preview must remain inactive until its matching native lifecycle passes.
