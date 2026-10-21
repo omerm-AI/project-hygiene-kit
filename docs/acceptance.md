@@ -5,6 +5,7 @@ Status is binary: **Proven** requires actual matching evidence; **Open** include
 | Check | Status | Evidence / open reason |
 | --- | --- | --- |
 | Once-per-project native-event consent state machine | Proven locally | Exact user token, session renewal, skip, owner isolation, malformed state and restore recovery tests |
+| Hook-origin question and exact-consent context in an already-running session | Proven | Both actual hosts delivered the question and then the inventory instruction through native UserPromptSubmit callbacks after same-process policy activation; this does not prove completion or edit blocking |
 | Metadata-only old-folder inventory | Proven locally | 1,772-file and 64 MiB sparse-file fixtures, page integrity and unchanged/new/missing checks |
 | Reviewed different-version archival | Proven locally | Distinct retained canonical hashes, history evidence, actual Old bytes and no-overwrite restore |
 | Types and conservative dependencies | Proven locally | Incoming references, SVG SMIL/outgoing dependencies, Office/ZIP, sensitive files and scan bounds |
@@ -25,6 +26,7 @@ Status is binary: **Proven** requires actual matching evidence; **Open** include
 | Every external/dynamic dependency and semantic history assertion | Open | Not universally decidable from bounded local file evidence |
 | Old processes without loaded native callbacks | Open | Host cannot dispatch definitions it never loaded |
 | Complete ordinary-instruction isolation in Codex | Open | Zero-model prompt rendering proves project_doc_max_bytes=0 removes project instructions but retains global AGENTS; vendor/developer hashes unchanged |
+| Connector-free isolation in Claude Code | Open | Effective plugin environment retained SDK tools despite strict MCP configuration; an actual work-plan tool call was observed. No claim that the trial had empty ordinary instructions or zero connectors |
 | Cowork / ordinary GPT | Open | No native proof for this package; instructions or memory are not hook enforcement |
 | Operating systems beyond macOS | Open | Native execution was attempted on macOS only; current locking requires POSIX and does not support Windows |
 
@@ -33,5 +35,7 @@ No model request was required for the local suite. Native testing must record su
 Known native-file safeguards from the earlier Workflow Hooks Kit release remain separate evidence; they do not prove this new onboarding/guide upgrade.
 
 The first native attempts exposed a false-positive preparation check: it matched the expected reason text without requiring a denial decision. Those earlier integrated zero-model negative checks are invalid enforcement evidence. Standalone package tests and anonymous replay remain separate, actual code/file checks; neither overrides the failed native integration result. No failed feature was persistently deployed.
+
+The private verifiers were corrected and passed 18 regression checks with zero additional model requests. They now reject warning-only responses, plain reason strings, wrong-event responses and failure receipts as denial proof, and require actual native file-tool identity. Re-evaluating both captured failed trials correctly reports gaps. Full cryptographic linkage to each individual tool-use identifier remains open: current signed receipts bind session, turn, event and source, rather than the full tool output.
 
 Independent Astra review replayed three groups of concrete failures through its third review pass. Source remained stable during that pass. The lead then separately closed and tested the staged-enable post-commit branch. No claim attributes that subsequent source change to the earlier Astra source hash.
