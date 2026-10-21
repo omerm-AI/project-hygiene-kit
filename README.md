@@ -49,7 +49,9 @@ python3 -B integrate.py --platform claude --core-dir "$HOME/.claude/workflow-hoo
 
 **Measured integration conflict:** the first subscription-only lifecycle trial in each host failed before organization completed. An existing advisory-only wrapper converted guard denials into warnings. This is not successful enforcement. A warning containing the expected reason is insufficient: preflight must assert the actual native denial/block decision, then prove the file tool did not write. Do not remove an operator's advisory policy silently or enable this upgrade over that conflict.
 
-That integration boundary has since passed local and independent source checks. A second actual Claude Code trial proved pre-consent Write blocking, but automatic organization did not finish. The second Codex trial exposed a missing controller preparation file before activation. The full upgrade remains unapproved for persistent activation. These distinct outcomes are recorded in the acceptance table rather than treated as a successful rollout.
+That integration boundary has since passed local and independent source checks. Across the three allowed native trials per host, Claude Code proved pre-consent Write blocking and subsequently executed inventory, a verified Assets move, a contextual guide and onboarding completion. However, the model retained an explicitly superseded fixture, so the required cleanup failed. Codex emitted a genuine native block, but the controller did not capture the denied tool's identity and stopped. Normal-save/postflight and new-root lifecycle proof remain open. The full upgrade is unapproved for persistent activation; no fourth trial or production upgrade was performed.
+
+**Semantic limit:** code checks declared decisions and filesystem evidence; it cannot guarantee that a model labels every obsolete file correctly from conversation history. The failed retained fixture is evidence of that limit. Do not present this preview as a completely verified client deployment.
 
 Uninstall removes only exact owned hook groups:
 
