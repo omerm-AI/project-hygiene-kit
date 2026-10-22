@@ -113,3 +113,13 @@ Platform limits remain explicit: Codex callback timeout/crash can fail open;
 ordinary shell/MCP writes, unloaded old callbacks and general semantic history
 are outside the proved native-file-tool contract. No isolated test silently
 authorizes changing the operator's release policy or native trust.
+
+## Closure-round outcome: no promotion
+
+Frozen source `72a78d7` passed the lead's 120 package and 258 compatibility tests, both installed-host zero-inference lifecycle checks, and anonymous HTTPS installation (four cases, 48 assertions). These are separate proof levels.
+
+The single Claude subscription trial used Sonnet 5.5 under native first-party subscription authentication, no API key or fallback. After two forwarded model steps it had read and edited through ordinary Bash before consent. Eight callbacks prove native question delivery and the shell path; native Write/next-edit/postflight were not exercised. The original controller records an empty AssertionError message, so the separate immutable forensic report explicitly records FAIL; the original evidence was not rewritten.
+
+Codex used the real ChatGPT/openai provider and gpt-6-luna/low. Two turns started; baseline completed, but the controller's opaque tunnel cap was reached before question completion. Sixteen CONNECT tunnels are not sixteen provider requests; the provider counter is unavailable. Routing/source/config restoration passed. No retry or further model request was authorized after the stop.
+
+Fable's post-trial review identified the shared consent-channel defect: additionalContext reaches the model rather than guaranteeing a question to the human. Both vendors document a blocking UserPromptSubmit decision/reason. That alternative and executable shell confinement require their own code/native acceptance; they were not silently introduced after the frozen trial. No failed candidate was globally promoted, and the operator release policy was not bypassed.

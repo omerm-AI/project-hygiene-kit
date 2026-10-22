@@ -4,9 +4,10 @@ Status is binary: **Proven** requires actual matching evidence; **Open** include
 
 ## Current closure snapshot — 2026-10-22
 
-No new subscription canary has been forwarded in this snapshot. Scripted tools
-were executed by the installed hosts with network isolation; those results prove
-mechanical host behavior, not that a model follows every step unaided.
+One bounded subscription trial per host was released after model-free readiness.
+Neither passed the complete workflow. Claude exposed an actual shell-write escape;
+Codex stopped at its test transport cap. No failed candidate was promoted.
+Scripted mechanics, actual model behavior and first-install proof remain separate.
 
 | Requirement | Status | Exact scope and evidence |
 | --- | --- | --- |
@@ -23,13 +24,18 @@ mechanical host behavior, not that a model follows every step unaided.
 | Codex installed native dispatch and isolation without inference | Proven | Real GPT-6 exec-to-apply_patch path; guard-absent Write control, trusted five-definition session allowlist, no ordinary AGENTS/skills in scripted request, local endpoint only |
 | Codex complete combined lifecycle without inference | Proven | Final-source same-process consent, inventory/Old/Assets/guide, heredoc metadata, native save/next-edit/Stop/postflight/resume, fresh SID and empty-root stages; independent final report review precedes promotion |
 | Codex temporary routing restoration | Proven | Three exact-root/SID wrappers restored byte/mode/mtime; definitions/trust/settings unchanged; recovery watchdog and installation-ID checks |
-| Actual subscription model follows complete workflow | Open | One trial per host is authorized only after frozen readiness and independent lead review; not inferred from scripted tools |
+| Codex native consent renewal and skip | Proven | Two native SIDs, stale token refused, exact skip, bytes/mtime preserved, zero inference |
+| Claude subscription delivery and provenance | Proven | Sonnet 5.5, native subscription/no API-key source, isolated three-tool catalog; hook question in actual model messages; eight verified callbacks and two linked tool inputs |
+| Claude complete subscription workflow | Open | FAIL: Read then Bash redirection before consent; onboarding remained awaiting; file changed without Old, Assets or guide. Two forwards, no retry. Native Write, next-edit block and postflight were not exercised in this subscription trial |
+| Codex complete subscription workflow | Open | Two turns started; baseline completed; question did not finish before controller reached 16 CONNECT tunnels. Provider-request count unavailable; consent/save/fresh/empty subscription stages not completed; no retry |
+| Human-visible native consent gate | Open | Current question is additionalContext for the model, not a guaranteed human-visible prompt. It was ignored in Claude. Documented UserPromptSubmit block/reason alternative is not implemented or accepted |
 | Persistent production upgrade | Open | Withheld until corresponding source-bound subscription acceptance and operator release/trust gates pass |
-| Anonymous install of this new source | Open | Earlier public commit passed; replay must match the new published commit |
+| Anonymous install of source 72a78d7 | Proven | Actual anonymous HTTPS clone matched main before/after; four standalone/integrated host cases, 48 assertions, 16 unique event groups, idempotence and Old bytes/mtime/mode; zero model requests and unchanged real settings. Installation proof only |
 | Codex callback crash/timeout blocking | Open | Tested platform can continue the tool after hook failure/timeout; unsupported onFailure field is not introduced |
 | Unlimited Stop enforcement | Open | Host failure and continuation behavior are independent; a failed Stop callback cannot guarantee completion blocking |
 | Old processes without registered callbacks | Open | No dispatcher can run definitions the host has not loaded; restart/reload is required where applicable |
-| Arbitrary shell/MCP/background writes | Open | Outside the explicitly approved known-native-file-tool boundary |
+| Arbitrary shell/MCP/background writes | Open | Outside approved native-file-tool boundary; actual pre-consent Bash write demonstrates the consequence. Executable shell confinement remains unresolved |
+| Operator release-policy/original Claude definitions | Open | Existing policy pins older advisory-only components and has no onFailure:block exception. No policy/hash bypass; global Claude failure definition differs from the isolated block-on-failure profile |
 | Universal semantic obsolescence/dynamic dependencies | Open | Bounded local evidence and detectors cannot prove all project semantics; uncertain files remain |
 | Cowork, ordinary GPT and non-macOS | Open | Not covered by this native Codex/Claude Code acceptance |
 

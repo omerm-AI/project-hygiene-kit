@@ -1,8 +1,9 @@
 # Closure plan: isolated native-host acceptance
 
-State: agreed by the lead and independent Fable review after Astra's documented
-capability challenge. Model-free implementation and acceptance are in progress;
-this is not a declaration of subscription acceptance or production activation.
+State: model-free readiness completed; the bounded subscription round did not
+pass, and promotion is paused. The original lead/Fable agreement below followed
+Astra's capability challenge. It is retained as an audit trail, not a declaration
+that every planned outcome was achieved.
 The operator authorized one additional subscription lifecycle per host after all
 model-free preparation gates pass. No API-key fallback, model switching, blind
 retries, trust fabrication or production activation on failed acceptance.
@@ -180,3 +181,11 @@ the precise reason. No failed component is promoted.
 - https://github.com/openai/codex/blob/main/codex-rs/core/tests/suite/hooks.rs
 
 Local discovery is capability evidence, not completed behavioral acceptance.
+
+## Measured stop and next acceptance gates
+
+The Claude trial failed after two model forwards: ordinary Bash edited before consent. The question was present in the model messages; its delivery was not a human-visible blocking gate. Codex started two turns, completed its baseline, then stopped at the controller's 16-CONNECT limit. No additional model trial followed either stop. Exact results and unexercised stages are in docs/acceptance.md.
+
+Before another paid test, first prove without inference: (1) the human sees a native consent block and no model request starts beforehand; (2) supported shell execution cannot mutate protected files outside reviewed paths, while legitimate build/test behavior remains explicit; (3) subscription transport readiness is measured separately from inference, without pretending CONNECT count equals provider requests; (4) the actual operator release policy and callback definitions match the tested candidate. These are unimplemented/Open gates, not assertions of completed repairs.
+
+Primary consent documentation: https://code.claude.com/docs/en/hooks#userpromptsubmit-decision-control and https://developers.openai.com/codex/hooks . No documentation claim substitutes for installed-host proof.

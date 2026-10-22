@@ -2,13 +2,13 @@
 
 A local, model-free hook runtime for Codex and Claude Code. It asks before organizing existing projects, preserves replaced files, checks known native saves, and maintains a contextual folder guide.
 
-**Preview: subscription acceptance and production promotion remain gated.** Installed-host tests with scripted tool calls are distinguished from model behavior. See [acceptance](docs/acceptance.md) and the agreed [closure plan](docs/closure-plan.md) before deploying or sharing with clients.
+**Preview: this subscription round did not pass. Do not deploy the upgrade or present it as client-ready.** Claude wrote through an uncovered shell path before consent; Codex stopped at its test transport limit. Scripted host proof remains separate. See [acceptance](docs/acceptance.md) and the [closure plan](docs/closure-plan.md).
 
 The approved integration separates hygiene enforcement from resource advice: a code-created hygiene denial remains blocking, while an existing advisory core keeps its planning/load/resource assessments advisory. A serialized dictionary or a warning containing the word "Hygiene" cannot acquire blocking authority. Installation does not silently replace an operator's policy choice.
 
 ## What changes
 
-1. Existing project: the first delivered user prompt asks for organization consent. Installation does not reorganize old folders.
+1. Existing project: the first delivered prompt adds an organization question to model context. This version does not block that prompt or guarantee the human sees the question. Installation does not reorganize old folders.
 2. Reply with the exact hook-generated `סדר TOKEN` to organize, or `דלג TOKEN` to skip legacy cleanup.
 3. Available conversation context supplies file roles and clear replacement evidence. Hidden history is not read from transcripts.
 4. Reviewed prior versions move to `Old/YYYY-MM/` with original bytes, relative paths, timestamps and recovery records. Nothing is permanently deleted.
@@ -78,3 +78,9 @@ Archival month currently uses Asia/Jerusalem. Inventory is bounded to 5,000 elig
 ## Isolation finding from the additional trial
 
 Both hosts received context from unrelated global hooks. Removing instruction files, disabling connectors, or setting empty developer instructions does not prove that the model received only the target hook. Future disposable test profiles must allowlist the intended callbacks and verify effective context before another subscription request. A model declining an unapproved edit is not proof that a native tool was blocked. This preview must remain inactive until its matching native lifecycle passes.
+
+## Actual closure-round result
+
+The current Claude subscription trial received the hook question but wrote through ordinary Bash before consent. The active file-tools policy deliberately delegates that path. Eight verified callbacks link the actual write; no Old, Assets or guide was created. The trial stopped after two model forwards. Codex started two turns and completed its baseline, then stopped at the controller's 16-CONNECT limit; provider-request count is unavailable. Neither complete workflow passed; no upgrade was promoted.
+
+Anonymous HTTPS first-install replay of source `72a78d7` passed four cases and 48 assertions. This proves installation, not model behavior. Further acceptance needs a human-visible native consent gate and an executable boundary for exposed shell writes. A context question alone is insufficient. UserPromptSubmit block/reason is documented by both vendors but is not implemented or verified in this candidate. Do not silently disable builds/tests to manufacture a passing result.
