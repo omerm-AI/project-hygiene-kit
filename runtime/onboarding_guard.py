@@ -708,19 +708,19 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 if history_hint:
                     return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
                         ' files. ' + history_hint + 'Run Bash workflow-hygiene inspect '
-                        "'{\"paths\":[\"REL\"]}', then workflow-hygiene review "
-                        "'{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
+                        "'{\"paths\":[\"REL\"]}', then workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+                        "{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
                         "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
-                        "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
+                        "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}\nHYGIENE_JSON\n"
                         'Superseded also needs canonical,canonical_sha256,history_evidence. '
                         'Then guide and onboarding-complete; accepted-by-code denial is success.')
                 return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
                     ' files. Inspect: workflow-hygiene inspect '
                     "'{\"paths\":[\"REL\"]}'; text: workflow-hygiene read "
-                    "'{\"path\":\"REL\"}'. Then workflow-hygiene review "
-                    "'{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
+                    "'{\"path\":\"REL\"}'. Then workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+                    "{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
                     "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
-                    "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
+                    "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}\nHYGIENE_JSON\n"
                     'Archive/superseded require canonical,canonical_sha256; superseded also history_evidence. '
                     "Then workflow-hygiene guide '{\"purpose\":\"...\",\"roles\":[{\"path\":\"REL\",\"purpose\":\"...\"}],"
                     "\"entrypoints\":[{\"path\":\"REL\",\"purpose\":\"...\"}],\"maintenance_notes\":[\"...\"],\"language\":\"en\"}'. "
@@ -737,9 +737,10 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 hg._write(path, data)
                 return _accepted(payload, 'Verified onboarding completion. Before each known file save, '
                     "use workflow-hygiene inspect '{\"paths\":[\"REL\"]}' then "
-                    "workflow-hygiene review '{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep\","
+                    "workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+                    "{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep\","
                     "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
-                    "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}'. "
+                    "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}\nHYGIENE_JSON\n"
                     'After the save, inspect its fresh hash, then repeat review with "phase":"postflight" '
                     'to clear pending postflight. A not-yet-existing file uses sha256:null;')
             if action == 'review':

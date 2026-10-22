@@ -2,7 +2,7 @@
 
 A local, model-free hook runtime for Codex and Claude Code. It asks before organizing existing projects, preserves replaced files, checks known native saves, and maintains a contextual folder guide.
 
-**Preview: native acceptance for this upgrade remains open.** Unit tests and saved settings do not prove host execution. See [acceptance](docs/acceptance.md) before deploying or sharing with clients.
+**Preview: subscription acceptance and production promotion remain gated.** Installed-host tests with scripted tool calls are distinguished from model behavior. See [acceptance](docs/acceptance.md) and the agreed [closure plan](docs/closure-plan.md) before deploying or sharing with clients.
 
 The approved integration separates hygiene enforcement from resource advice: a code-created hygiene denial remains blocking, while an existing advisory core keeps its planning/load/resource assessments advisory. A serialized dictionary or a warning containing the word "Hygiene" cannot acquire blocking authority. Installation does not silently replace an operator's policy choice.
 
@@ -14,7 +14,7 @@ The approved integration separates hygiene enforcement from resource advice: a c
 4. Reviewed prior versions move to `Old/YYYY-MM/` with original bytes, relative paths, timestamps and recovery records. Nothing is permanently deleted.
 5. Reviewed helpers may move to `Assets/`; required source, configuration and entrypoints stay where dependencies require them.
 6. `FOLDER-GUIDE.md` explains the actual project purpose, type locations, entrypoints and maintenance. Structure changes refresh it; content-only edits do not rewrite it.
-7. Known native edits require preflight review and preserve beforeimages. The next native edit and completion are refused until postflight review passes.
+7. Known native edits require preflight review and preserve beforeimages. A functioning callback refuses the next supported edit while postflight is pending; Stop also checks completion, subject to host failure/continuation behavior.
 
 A genuinely new empty folder receives a starter guide on its first delivered native prompt. Before material work, the model must supply the real purpose and context. Skipping legacy cleanup leaves existing files untouched; material file work still requires the guide.
 
@@ -47,11 +47,13 @@ python3 -B integrate.py --platform codex --core-dir "$HOME/.codex/workflow-hooks
 python3 -B integrate.py --platform claude --core-dir "$HOME/.claude/workflow-hooks-kit/bin" --state-dir "$HOME/.claude/workflow-hooks-kit"
 ```
 
-`--apply` stages backed-up runtime changes; `--apply --enable` also enables the organization policy last. Do not stage against a production core before isolated native acceptance: staging also updates its existing hygiene engine. This preview has not yet passed that acceptance. Integrated cores retain their own input-envelope/error behavior; the standalone event-bound parser does not prove the integrated boundary.
+`--apply` stages backed-up runtime changes; `--apply --enable` also enables the organization policy last. Do not stage against a production core before matching isolated acceptance: staging also updates its existing hygiene engine. The integrator recognizes supported input-error boundaries, preserves an already blocking public core, and makes recognized advisory-core malformed-input failures exit 2 while organization policy is active. Unknown shapes are refused. Standalone and integrated evidence remain separate.
 
 **Measured integration conflict:** the first subscription-only lifecycle trial in each host failed before organization completed. An existing advisory-only wrapper converted guard denials into warnings. This is not successful enforcement. A warning containing the expected reason is insufficient: preflight must assert the actual native denial/block decision, then prove the file tool did not write. Do not remove an operator's advisory policy silently or enable this upgrade over that conflict.
 
-That integration boundary passed local and independent source checks. After three initial trials, one additional trial was explicitly authorized per host. Claude captured native replacement facts but produced two review commands with a missing closing quote; parsing failed before transfers or guide creation. A later local repair exposes that known parser diagnostic without weakening validation or correcting commands automatically. Codex delivered the hook question, but the model attempted no edit; native input identity capture and the remaining lifecycle were not exercised. Both additional attempts are consumed. The full upgrade remains unapproved for persistent activation.
+The closure repair uses an exact quoted-heredoc metadata protocol, tests its real integrated dispatch after onboarding, and isolates unrelated callbacks before inference. Claude Code's installed engine completed both standalone and integrated existing/new-folder lifecycles with zero provider forwards, including actual archive bytes, assets, guides, native write denial and postflight release. These are scripted native-host tests, not a claim that an unassisted model completed the workflow. The current per-host subscription and promotion status is in the acceptance table.
+
+**Host failure limit:** Codex's tested hook engine can continue a tool when the callback crashes or times out. There is no supported equivalent of Claude's `onFailure: block` in the tested Codex schema. Claude PreToolUse definitions set a 10-second timeout and `onFailure: block`; plain-text hook output still counts as success, so the runtime must explicitly return a decision or exit nonzero on validation failure. These controls are not universal OS write protection. Stop failure handling cannot replace the next-edit gate.
 
 **Semantic limit:** code checks declared decisions and filesystem evidence; it cannot guarantee that a model labels every obsolete file correctly from conversation history. The failed retained fixture is evidence of that limit. Do not present this preview as a completely verified client deployment.
 

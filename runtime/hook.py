@@ -48,6 +48,36 @@ def command(payload):
     raw = data(payload).get('command', data(payload).get('cmd'))
     if not isinstance(raw, str):
         return None
+    stripped = raw.lstrip()
+    marker = 'workflow-hygiene-json'
+    if stripped.startswith(marker):
+        if '\r' in raw:
+            raise ValueError('Malformed hygiene sentinel')
+        match = re.fullmatch(
+            r"workflow-hygiene-json[ \t]+([a-z-]+)[ \t]+<<'HYGIENE_JSON'\n"
+            r"(.*?)\nHYGIENE_JSON(?:\n[ \t\n]*)?", stripped, re.S)
+        if match is None or match.group(1) not in ACTIONS:
+            raise ValueError("Use exactly workflow-hygiene-json ACTION <<'HYGIENE_JSON'")
+        body_text = match.group(2)
+        if len(body_text.encode('utf-8')) > 32768:
+            raise ValueError('Sentinel payload exceeds bound')
+
+        def unique_object(pairs):
+            body = {}
+            for key, value in pairs:
+                if key in body:
+                    raise ValueError('Duplicate JSON key')
+                body[key] = value
+            return body
+
+        def invalid_constant(value):
+            raise ValueError('Invalid JSON constant: ' + value)
+
+        body = json.loads(body_text, object_pairs_hook=unique_object,
+                          parse_constant=invalid_constant)
+        if not isinstance(body, dict):
+            raise ValueError('Sentinel body must be an object')
+        return match.group(1), body
     try:
         parts = shlex.split(raw)
     except ValueError:

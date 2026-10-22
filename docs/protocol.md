@@ -17,17 +17,33 @@ Do not create a guide containing generic file-name samples before cleanup: maint
 
 ## Guide context
 
-Use exactly one quoted JSON object:
+Use the exact quoted-heredoc transport for JSON containing project text:
 
 ```text
-workflow-hygiene guide '{"purpose":"Project-specific purpose","roles":[{"path":"Assets","purpose":"Supporting media"}],"entrypoints":[{"path":"index.html","purpose":"Current presentation"}],"maintenance_notes":["Keep the editable master as well as final exports."],"language":"en"}'
+workflow-hygiene-json guide <<'HYGIENE_JSON'
+{"purpose":"Project-specific purpose","roles":[{"path":"Assets","purpose":"Supporting media"}],"entrypoints":[{"path":"index.html","purpose":"Current presentation"}],"maintenance_notes":["Keep the editable master as well as final exports."],"language":"en"}
+HYGIENE_JSON
 ```
+
+The opener and closing delimiter are exact. No CRLF, `<<-`, unquoted delimiter,
+extra closing delimiter or trailing command is accepted. The body must be one
+JSON object of at most 32 KiB; duplicate keys and non-JSON numeric constants are
+refused. Parsing happens before shell tokenizing. Bare unquoted JSON after the
+new command name is refused. Quoting the heredoc prevents shell expansion even
+if the hook is unavailable. The legacy `workflow-hygiene ACTION 'JSON'` syntax
+remains supported, including short empty-object inventory/completion commands.
 
 Paths must actually exist; omit absent roles/entrypoints rather than inventing directories. Guide context is model-supplied and bounded. Existing foreign/tampered guides are refused. Use the managed command, not direct Edit/Write/Delete, to change the guide. Older managed guide bytes and timestamps are retained in Old; those guide manifests are not ordinary hygiene restore commands.
 
 ## File reviews
 
 Preflight and postflight review entries include `path, decision, sha256, reason, usage, dependencies, concurrency`. Use `sha256:null` only when the target is actually absent. Explicit inspection is not review approval.
+
+```text
+workflow-hygiene-json review <<'HYGIENE_JSON'
+{"phase":"postflight","entries":[{"path":"current.md","decision":"keep","sha256":"ACTUAL_INSPECTED_HASH","reason":"Retained current overview","usage":"Active overview","dependencies":"References checked","concurrency":"Actual owner and fresh bytes checked"}]}
+HYGIENE_JSON
+```
 
 Decisions:
 - `keep`: retain required current material.

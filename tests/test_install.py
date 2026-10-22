@@ -41,6 +41,20 @@ class InstallerTests(unittest.TestCase):
                 self.assertEqual(len(list((path.parent / 'project-hygiene-kit' / 'bin').glob('*.py'))),
                                  len(install.MODULES))
 
+    def test_claude_pretooluse_has_bounded_blocking_failure_policy(self):
+        for platform in ('claude', 'codex'):
+            with self.subTest(platform=platform):
+                path = self.config(platform)
+                install.operate(platform, self.home, apply=True)
+                hooks = json.loads(path.read_text())['hooks']
+                handler = hooks['PreToolUse'][0]['hooks'][0]
+                if platform == 'claude':
+                    self.assertEqual(handler['timeout'], 10)
+                    self.assertEqual(handler['onFailure'], 'block')
+                else:
+                    self.assertNotIn('onFailure', handler)
+                    self.assertNotIn('timeout', handler)
+
     def test_merge_reinstall_uninstall_and_reenable_preserve_foreign(self):
         path = self.config('codex')
         foreign = {'matcher': 'Read', 'hooks': [{'type': 'command', 'command': 'foreign-handler'}]}

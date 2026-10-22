@@ -112,10 +112,42 @@ def _organization_entry(core, payload, state):
             return {'decision': 'block', 'reason': reason}
         return {'systemMessage': reason}
 
+
+def _organization_transport(core, payload, state):
+    """Translate a verified heredoc for the unchanged legacy adapter only."""
+    policy = state / 'onboarding-policy.json'
+    if (not policy.exists() and not policy.is_symlink()) or core._event(payload) != 'PreToolUse':
+        return payload, None
+    import organization_runtime as organization
+    if organization.name(payload) not in organization.SHELLS:
+        return payload, None
+    raw = organization.data(payload).get('command', organization.data(payload).get('cmd'))
+    if not isinstance(raw, str) or not raw.lstrip().startswith('workflow-hygiene-json'):
+        return payload, None
+    try:
+        action, body = organization.command(payload)
+        if action not in {'inspect', 'read', 'review', 'restore'}:
+            return payload, core._deny('PreToolUse', 'Organization action unavailable; no shell command executed.')
+        import json
+        import shlex
+        local_input = dict(organization.data(payload))
+        local_input['command'] = 'workflow-hygiene ' + action + ' ' + shlex.quote(
+            json.dumps(body, ensure_ascii=False, allow_nan=False))
+        return {**payload, 'tool_input': local_input}, None
+    except Exception as exc:
+        return payload, core._deny('PreToolUse',
+                                   'Organization transport unavailable: ' + type(exc).__name__)
+
 '''
     source = _replace(source, 'def run(core, payload, state, delegate):',
                       helper + 'def run(core, payload, state, delegate):')
-    entry = '    organization_result = _organization_entry(core, payload, state)\n    if organization_result is not None:\n        return organization_result\n'
+    entry = '''    organization_result = _organization_entry(core, payload, state)
+    if organization_result is not None:
+        return organization_result
+    payload, transport_denial = _organization_transport(core, payload, state)
+    if transport_denial is not None:
+        return _hygiene_decision(transport_denial)
+'''
     anchor = '    mode = policy_mode(state)\n' if '    mode = policy_mode(state)\n' in source else '    if not enabled(state):\n'
     source = _replace(source, anchor, entry + anchor)
     accepted = "            return core._deny(event, 'Hygiene review accepted by code. No shell command executed.')"
@@ -180,10 +212,118 @@ def _workflow(source):
 ''')
 
 
+def _scope_envelope(source):
+    """Patch only the recognized native import and input-error branches."""
+    tree = ast.parse(source)
+    imports = [node for node in tree.body if isinstance(node, ast.Try) and any(
+        isinstance(stmt, ast.Import) and any(
+            alias.name == 'session_workflow_hook' and alias.asname == 'workflow'
+            for alias in stmt.names) for stmt in node.body)]
+
+    # The public core already exits 2 before dispatch on dependency, decode,
+    # shape and size failures. Match executable syntax, ignoring comments.
+    if len(imports) == 1:
+        public_import = ast.parse('''try:
+    import session_workflow_hook as workflow
+    import delegation_gate
+except Exception:
+    sys.stderr.write("Hook dependency unavailable; action not authorized.\\n")
+    raise SystemExit(2)
+''').body[0]
+        main_nodes = [node for node in tree.body if isinstance(node, ast.FunctionDef)
+                      and node.name == 'main']
+        if (ast.dump(imports[0], include_attributes=False) ==
+                ast.dump(public_import, include_attributes=False) and len(main_nodes) == 1):
+            public_input = ast.parse('''try:
+    raw = sys.stdin.buffer.read(MAX_INPUT + 1)
+    if len(raw) > MAX_INPUT:
+        raise ValueError("input exceeds limit")
+    else:
+        payload = json.loads(raw.decode("utf-8"))
+        if not isinstance(payload, dict):
+            raise ValueError("input must be an object")
+        result = run(payload, claude=args.claude)
+except Exception as exc:
+    sys.stderr.write(f"Hook input rejected: {type(exc).__name__}; action not authorized.\\n")
+    return 2
+''').body[0]
+            if any(ast.dump(node, include_attributes=False) ==
+                   ast.dump(public_input, include_attributes=False)
+                   for node in main_nodes[0].body if isinstance(node, ast.Try)):
+                return source
+    if not imports:
+        if 'MAX_HOOK_INPUT' in source:
+            raise ValueError('unsupported core envelope')
+        return source  # Older minimal cores have no native envelope to patch.
+    if len(imports) != 1 or 'sys.stdin.buffer.read(MAX_HOOK_INPUT + 1)' not in source:
+        raise ValueError('unsupported core envelope')
+    main = next(node for node in tree.body
+                if isinstance(node, ast.FunctionDef) and node.name == 'main')
+    native_try = [node for node in main.body if isinstance(node, ast.Try)
+                  and 'sys.stdin.buffer.read(MAX_HOOK_INPUT + 1)' in
+                  (ast.get_source_segment(source, node) or '')]
+    if len(native_try) != 1:
+        raise ValueError('unsupported core envelope')
+
+    def empty_writes(statements):
+        return [stmt.value for stmt in statements if isinstance(stmt, ast.Expr)
+                and isinstance(stmt.value, ast.Call)
+                and ast.get_source_segment(source, stmt.value) ==
+                'sys.stdout.write("{}\\n")']
+
+    import_handlers = [handler for handler in imports[0].handlers
+                       if isinstance(handler.type, ast.Name)
+                       and handler.type.id == 'Exception']
+    error_handlers = [handler for handler in native_try[0].handlers
+                      if isinstance(handler.type, ast.Name)
+                      and handler.type.id == 'Exception']
+    oversize = [stmt for stmt in native_try[0].body if isinstance(stmt, ast.If)
+                and 'len(raw) > MAX_HOOK_INPUT' in
+                (ast.get_source_segment(source, stmt.test) or '')]
+    if (len(import_handlers) != 1 or len(error_handlers) != 1 or len(oversize) != 1):
+        raise ValueError('unsupported core envelope')
+    writes = (empty_writes(import_handlers[0].body) +
+              empty_writes(error_handlers[0].body) +
+              empty_writes(oversize[0].body))
+    if len(writes) != 3:
+        raise ValueError('unsupported core envelope')
+    lines = source.splitlines(keepends=True)
+    offsets = [0]
+    for line in lines:
+        offsets.append(offsets[-1] + len(line))
+    insertion = offsets[imports[0].lineno - 1]
+    for node in sorted(writes, key=lambda item: (item.lineno, item.col_offset),
+                       reverse=True):
+        begin = offsets[node.lineno - 1] + node.col_offset
+        end = offsets[node.end_lineno - 1] + node.end_col_offset
+        source = source[:begin] + '_organization_envelope_failure()' + source[end:]
+    helper = '''def _organization_envelope_failure():
+    # Exit 2 blocks PreToolUse on both native hosts; no event is available here.
+    claude = '--claude' in sys.argv[1:]
+    core = Path(__file__).resolve().parent
+    state = (core.parent if claude else
+             core.parent / 'state' if core.name == 'bin' else
+             core.parent / 'runtime' / 'session-workflow')
+    if not claude:
+        loaded = getattr(globals().get('workflow'), 'STATE', None)
+        if isinstance(loaded, Path):
+            state = loaded
+    policy = state / 'onboarding-policy.json'
+    if policy.exists() or policy.is_symlink():
+        sys.stderr.write('Hygiene: native input validation unavailable\\n')
+        raise SystemExit(2)
+    sys.stdout.write("{}\\n")
+
+
+'''
+    return source[:insertion] + helper + source[insertion:]
+
+
 def _scope(source):
     _function(source, 'main', ('argv',))
     if MARK in source:
         raise ValueError('unowned integration marker')
+    source = _scope_envelope(source)
     anchor = '            handler = "tool-scope-claude-v1"'
     insertion = '''            # project-hygiene-kit organization integration v1
             organization_state = CLAUDE_STATE if args.claude else workflow.STATE

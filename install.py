@@ -94,7 +94,10 @@ def _hooks(bin_dir: Path, state: Path, platform: str) -> dict:
     command = ' '.join(shlex.quote(str(part)) for part in
                        (sys.executable, '-B', bin_dir / 'hook.py', '--platform', platform,
                         '--state-dir', state))
-    return {event: {'matcher': '.*', 'hooks': [{'type': 'command', 'command': command + ' --event ' + event}]}
+    return {event: {'matcher': '.*', 'hooks': [{
+                'type': 'command', 'command': command + ' --event ' + event,
+                **({'timeout': 10, 'onFailure': 'block'}
+                   if platform == 'claude' and event == 'PreToolUse' else {})}]}
             if event in {'PreToolUse', 'PostToolUse'} else
             {'hooks': [{'type': 'command', 'command': command + ' --event ' + event}]}
             for event in EVENTS}

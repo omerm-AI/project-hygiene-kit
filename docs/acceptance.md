@@ -2,6 +2,44 @@
 
 Status is binary: **Proven** requires actual matching evidence; **Open** includes its reason. Local/unit evidence is separate from native host evidence. This preview is not yet a client-ready or globally enabled upgrade.
 
+## Current closure snapshot — 2026-10-22
+
+No new subscription canary has been forwarded in this snapshot. Scripted tools
+were executed by the installed hosts with network isolation; those results prove
+mechanical host behavior, not that a model follows every step unaided.
+
+| Requirement | Status | Exact scope and evidence |
+| --- | --- | --- |
+| Independent documented plan | Proven | Lead accepted Fable's conditions after Astra capability checks; docs/closure-plan.md |
+| Strict heredoc metadata parser and legacy compatibility | Proven | JSON/schema/bounds and real shell expansion controls; bare raw JSON refused |
+| Integrated finished-phase new-prefix dispatch | Proven | Same legacy guard state, local payload normalization, original native input unchanged; actual Claude preferred inspect/read/review and postflight calls intercepted |
+| Integrated malformed-input boundary | Proven | Active advisory-core failures exit 2; inactive legacy behavior preserved; already blocking public core retained structurally |
+| Local regression and public-core compatibility | Proven | 120 package checks and 258 fresh public-core checks; one invalid PNG fixture header normalized in the private export, no assertion changed |
+| Claude integrated native lifecycle without inference | Proven | Installed host; same live process before/after activation; exact native consent, inventory/history/Old/Assets/guide, Write, next-edit/Stop block, postflight/resume, fresh SID, empty root and skip |
+| Claude standalone installed lifecycle without inference | Proven | Actual standalone installer settings; old/new/fresh/skip, archive/guide, real Write and pending-review gates; separate from integrated evidence |
+| Claude native provenance | Proven | Final-builder integrated run: 74 signed native callbacks and 38 linked PreToolUse inputs across five SIDs; HMAC binds session/prompt/event/outcome/version, not tool_use_id |
+| Claude ordinary-instruction/callback isolation | Proven | Restricted minimal settings, target callbacks only, three built-in tools, no MCP, ordinary claudeMd stripped; vendor base retained; zero provider forwards |
+| Claude PreToolUse timeout/startup/schema failure policy | Proven | Actual Write denied for 10-second timeout, missing callback and invalid output schema; plaintext or truncated JSON treated as text is not a host failure; explicit nonzero validation failure is required |
+| Codex installed native dispatch and isolation without inference | Proven | Real GPT-6 exec-to-apply_patch path; guard-absent Write control, trusted five-definition session allowlist, no ordinary AGENTS/skills in scripted request, local endpoint only |
+| Codex complete combined lifecycle without inference | Proven | Final-source same-process consent, inventory/Old/Assets/guide, heredoc metadata, native save/next-edit/Stop/postflight/resume, fresh SID and empty-root stages; independent final report review precedes promotion |
+| Codex temporary routing restoration | Proven | Three exact-root/SID wrappers restored byte/mode/mtime; definitions/trust/settings unchanged; recovery watchdog and installation-ID checks |
+| Actual subscription model follows complete workflow | Open | One trial per host is authorized only after frozen readiness and independent lead review; not inferred from scripted tools |
+| Persistent production upgrade | Open | Withheld until corresponding source-bound subscription acceptance and operator release/trust gates pass |
+| Anonymous install of this new source | Open | Earlier public commit passed; replay must match the new published commit |
+| Codex callback crash/timeout blocking | Open | Tested platform can continue the tool after hook failure/timeout; unsupported onFailure field is not introduced |
+| Unlimited Stop enforcement | Open | Host failure and continuation behavior are independent; a failed Stop callback cannot guarantee completion blocking |
+| Old processes without registered callbacks | Open | No dispatcher can run definitions the host has not loaded; restart/reload is required where applicable |
+| Arbitrary shell/MCP/background writes | Open | Outside the explicitly approved known-native-file-tool boundary |
+| Universal semantic obsolescence/dynamic dependencies | Open | Bounded local evidence and detectors cannot prove all project semantics; uncertain files remain |
+| Cowork, ordinary GPT and non-macOS | Open | Not covered by this native Codex/Claude Code acceptance |
+
+Runtime modules and installed callback source hashes are frozen in private
+synthetic acceptance artifacts. Raw account information, session IDs, secrets,
+operator paths and traces are not published. Both host proof levels must retain
+their exact source correspondence; changing code invalidates matching evidence.
+
+## Historical snapshot — 2026-10-21 (superseded by the table above)
+
 | Check | Status | Evidence / open reason |
 | --- | --- | --- |
 | Once-per-project native-event consent state machine | Proven locally | Exact user token, session renewal, skip, owner isolation, malformed state and restore recovery tests |

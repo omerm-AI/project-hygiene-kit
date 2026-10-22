@@ -63,3 +63,53 @@ Final independent checks verified unchanged fixtures, all 17 restored operator s
 An anonymous HTTPS clone of public commit `57dda6e9ae77d488c70859097efda454958494a6` passed all 99 tests. Both hosts passed preview without settings writes, apply with exactly four event groups, and byte-identical idempotent reinstallation in disposable homes. No real settings or model requests were involved. This validates first installation of that source; native lifecycle and effective hook isolation remain Open.
 
 A fresh disposable export of the public fullkit core was integrated with the current candidate and passed all 258 existing tests. As in the prior compatibility replay, one invalid PNG fixture header was normalized to its eight-byte signature; no assertion was changed. The 32 private identity/denial verifier tests also passed independently again. These model-free checks do not replace the failed native lifecycle or authorize activation.
+
+## Agreed closure round: host-first, zero inference before subscription
+
+The operator authorized another bounded closure round, requiring lead/Fable plan
+agreement and Astra's source/documentation challenge before implementation. The
+plan is in docs/closure-plan.md. Earlier exhausted budgets remain historical;
+this authorization permits one new subscription lifecycle per host only after
+all relevant model-free readiness gates pass. It does not authorize blind retries.
+
+Explicit gpt-6-astra/high review verified session-only Codex hook-state overrides
+and native trust preservation. Fable 5.1 was selected in a fresh Claude Desktop
+review conversation; it challenged denial causes, native identity, permissions,
+timeouts, script trust, source correspondence and shell expansion. Bounded
+gpt-6-sol execution assignments implement source repairs and private Claude test
+drivers; the selected lead independently reviews source and runs regressions.
+
+The source repair adds strict quoted-heredoc metadata transport, preserves legacy
+syntax, normalizes only a local verified payload into the existing integrated
+adapter, and preserves its guard state. Native testing caught a real finished-
+phase new-prefix fall-through that standalone parser tests missed; it was fixed
+before any paid canary. Malformed integrated envelopes use documented exit 2,
+not unsupported Codex continue:false output. Already blocking public cores are
+recognized structurally and preserved; generic core layouts remain relocatable.
+
+Claude's installed engine ran deterministic tool calls through a separate
+observer, with explicit target callbacks, empty ordinary instructions, no MCP,
+network denied and zero provider forwards. Both installer routes completed
+existing/fresh/empty/skip lifecycles. Actual signed receipts are checked separately
+from tool-use IDs: the existing HMAC binds session/prompt/event/outcome/version,
+while private callback/observer records link actual tool input and identity.
+Do not claim the legacy receipt cryptographically binds each tool_use_id.
+
+Codex's installed GPT-6 code-mode path was tested against a local scripted
+Responses endpoint. An actual guard-absent write is required before guard denial
+can count; OS sandbox failures do not count as hygiene enforcement. The native
+subscription trial must use the real ChatGPT account/provider, never the local
+stub or an API key. Source hashes and trust/settings restoration gate every run.
+
+Claude subscription preparation resolves claude-sonnet-5-5 with zero forwards.
+This is a bounded adequacy escalation after repeated earlier Haiku formatting
+failures, not an automatic global routing change. Planned cap: twenty forwards
+for one coherent trial, no fallback; the observer counts/stops and never injects
+implementation during real model work. Codex remains gpt-6-luna/low with at most
+seven turn/start calls; a provider request counter is not exposed. Neither
+prepared controller may forward before explicit lead readiness release.
+
+Platform limits remain explicit: Codex callback timeout/crash can fail open;
+ordinary shell/MCP writes, unloaded old callbacks and general semantic history
+are outside the proved native-file-tool contract. No isolated test silently
+authorizes changing the operator's release policy or native trust.

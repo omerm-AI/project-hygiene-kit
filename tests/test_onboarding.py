@@ -4,11 +4,14 @@ import hashlib
 import os
 from pathlib import Path
 import re
+import sys
 import tempfile
 import unittest
 from unittest import mock
 
 from runtime import onboarding_guard as og
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'runtime'))
+import hook  # noqa: E402
 
 
 def rejected(result):
@@ -86,6 +89,29 @@ class OnboardingTests(unittest.TestCase):
         self.assertIn('"phase":"postflight"', completed['hookSpecificOutput']['permissionDecisionReason'])
         self.assertLessEqual(len(completed['hookSpecificOutput']['permissionDecisionReason']), 900)
         self.assertIsNone(self.invoke(event='PreToolUse', native_edit=True))
+
+    def test_generated_review_examples_parse_as_quoted_heredoc(self):
+        def review_from_feedback(result):
+            reason = result['hookSpecificOutput']['permissionDecisionReason']
+            self.assertLessEqual(len(reason), 900)
+            prefix = "workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+            self.assertIn(prefix + '{', reason)
+            tail = reason.split(prefix, 1)[1]
+            body_text, closing = tail.split('\nHYGIENE_JSON', 1)
+            body = json.loads(body_text)
+            self.assertEqual(hook.command({'tool_input': {
+                'command': prefix + body_text + '\nHYGIENE_JSON'}}),
+                             ('review', body))
+            self.assertEqual(set(body['entries'][0]),
+                             {'path', 'decision', 'sha256', 'reason', 'usage',
+                              'dependencies', 'concurrency'})
+
+        token = self.ask()
+        self.invoke(prompt='סדר ' + token)
+        review_from_feedback(self.invoke(command=('onboarding-inventory', {})))
+        with mock.patch.object(og, '_history_hint', return_value='Native history present. '):
+            review_from_feedback(self.invoke(command=('onboarding-inventory', {})))
+        review_from_feedback(self.invoke(command=('onboarding-complete', {})))
 
     def test_inventory_freeze_and_new_file(self):
         (self.root / 'kept.txt').write_bytes(b'one')
