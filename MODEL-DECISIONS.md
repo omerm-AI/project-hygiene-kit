@@ -132,4 +132,20 @@ The gpt-6-astra/high review identified prompt-loss and shell-rewrite/startup/IPC
 
 The first Codex zero-inference run caught a real integration defect: the project-hygiene bridge returned a plain dictionary and the operator advisory layer converted consent blocking into a warning. No provider was called. The bridge now creates the existing typed HygieneDecision at its source, including validation/root failures; missing wrapper exits 2. Four regression cases preserve type identity and ordinary resource advice. Native reacceptance, exact-source promotion and actual subscription results remain separately gated; local green tests do not prove them.
 
-Current source freeze: integrate.py a3d1bec70c3cc4456ae0f1ebca022acf48240aa02de1239fe3a6f14e3587e318; runtime/hook.py c36baa296a42889fba92a55338a869877fa3a8e5cdbee65d32a9f290d128be30; runtime/onboarding_guard.py 634b79ddeb29036199dac039765718c9b465034e3cea43aa59a0288242ae68a0. Installed versions observed: Claude Code 2.1.302 and Codex CLI 0.163.0-alpha.10.2. No global runtime or native trust was changed by this source repair.
+Initial 25 October source freeze: integrate.py a3d1bec70c3cc4456ae0f1ebca022acf48240aa02de1239fe3a6f14e3587e318; runtime/hook.py c36baa296a42889fba92a55338a869877fa3a8e5cdbee65d32a9f290d128be30; runtime/onboarding_guard.py 634b79ddeb29036199dac039765718c9b465034e3cea43aa59a0288242ae68a0. Installed versions observed: Claude Code 2.1.302 and Codex CLI 0.163.0-alpha.10.2. No global runtime or native trust was changed by this source repair.
+
+## Final bounded-round result — 2026-10-25
+
+Lead QA independently passed 136 final package tests with no skips. Anonymous HTTPS installation of runtime source e6d38a7 passed 136 package and 258 public-core checks, both host installs/idempotence/duplicate refusal/recovery, without model inference. Final native scripted checks passed: Codex full plus edge controls verified 81 receipts; Claude integrated 20/20 with 64 receipts, standalone 19/19 with 60 receipts. These remain separate from subscription acceptance.
+
+All three TOTAL subscription trials are consumed:
+
+1. Codex gpt-6-luna/low: native consent block passed; organization stopped after exact-history punctuation mismatch and a guide command without JSON.
+2. Claude claude-sonnet-5-5/low: native consent, organization, Assets/Old/guide, native Write and exact pre-edit beforeimage passed. A mixed shell/metadata command left postflight pending; the observer stopped at 15 forwards (12 consent, 3 save). Fresh/empty subscription stages did not run. This source was not promoted.
+3. Codex gpt-6-sol/low, final source: three native turns started, then parallel PreToolUse callbacks exposed nonblocking lock contention during organization. The ordinary read command was denied with Errno 35 while inventory succeeded. A zero-model held-lock reproducer returned identical JSON; releasing the lock permitted the same input. Nine signed partial receipts and two native input IDs support the finding. The provider request count is unavailable. Save/fresh/empty stages did not run.
+
+The stronger Codex test model was selected only after actual protocol-recovery failure and a no-inference account/catalog check confirmed sol/low availability. This did not change the session lead or establish exact comparative prices. All tests used native subscription authentication; no API-key/provider fallback. Settings, installation identity and source restoration passed; no global runtime, release-pin or native-trust promotion occurred.
+
+The final source repair added exact JSON clause feedback, complete bounded PreToolUse instructions, narrow quote-aware mixed metadata refusal and actionable postflight Stop guidance. It does not parse general shell or close Shell/MCP/background writes. An initial suspicion about fixture newline/PNG escaping was disproved by numeric bytes and AST; no fixture repair or retry was made.
+
+Stop for operator review. The next proposed gate is deterministic overlapping-callback acceptance and a bounded recovery design, followed by explicit source-matched subscription budget approval. This is a proposal, not an approved new rule or permission for a fourth trial. This preview is not customer-ready.
