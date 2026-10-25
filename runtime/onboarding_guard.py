@@ -150,9 +150,17 @@ def _history_hint(data):
             continue
         if record['status'] == 'ambiguous':
             return 'Native history ambiguous; ask user השאר ' + key + ' / החלף ' + key + '. '
-        return ('Native history: ' + record['clause'] + '. Source keep is blocked; '
-                'superseded requires history_evidence equal to that exact clause. ')
+        clause = json.dumps(record['clause'], ensure_ascii=False)
+        return ('Native history: ' + clause + '. Keep is blocked; use superseded '
+                'with history_evidence set to this exact quoted clause. ')
     return ''
+
+
+def _guide_example():
+    example = {'purpose': '...', 'roles': [{'path': 'REL', 'purpose': '...'}],
+               'entrypoints': [{'path': 'REL', 'purpose': '...'}],
+               'maintenance_notes': ['...'], 'language': 'en'}
+    return "workflow-hygiene guide '" + json.dumps(example, separators=(',', ':')) + "'"
 
 
 def _history_complete(data, current):
@@ -182,9 +190,13 @@ def _deny(payload, reason):
 
 
 def _accepted(payload, message):
-    if len(message) > 800:
+    if _event(payload) != 'PreToolUse':
+        raise ValueError('onboarding command requires native PreToolUse')
+    message = 'Hygiene: Onboarding: ' + message + ' accepted by code. No shell command executed.'
+    if len(message) > 1600:
         raise ValueError('onboarding feedback exceeds bound')
-    return _deny(payload, message + ' accepted by code. No shell command executed.')
+    return {'hookSpecificOutput': {'hookEventName': 'PreToolUse',
+            'permissionDecision': 'deny', 'permissionDecisionReason': message}}
 
 
 def _policy(state_dir):
@@ -713,13 +725,14 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                 history_hint = _history_hint(data)
                 if history_hint:
                     return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
-                        ' files. ' + history_hint + 'Run Bash workflow-hygiene inspect '
-                        "'{\"paths\":[\"REL\"]}', then workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+                        ' files. ' + history_hint + 'Inspect: workflow-hygiene inspect '
+                        "'{\"paths\":[\"REL\"]}'; read: workflow-hygiene read '{\"path\":\"REL\"}'. "
+                        "Review via workflow-hygiene-json review <<'HYGIENE_JSON'\n"
                         "{\"entries\":[{\"path\":\"REL\",\"decision\":\"keep|asset|archive|superseded\","
                         "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
                         "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}\nHYGIENE_JSON\n"
-                        'Superseded also needs canonical,canonical_sha256,history_evidence. '
-                        'Then guide and onboarding-complete; accepted-by-code denial is success.')
+                        'Superseded needs canonical,canonical_sha256,history_evidence. Then ' +
+                        _guide_example() + ". Finish with workflow-hygiene onboarding-complete '{}'.")
                 return _accepted(payload, 'Inventory frozen: ' + str(data['file_count']) +
                     ' files. Inspect: workflow-hygiene inspect '
                     "'{\"paths\":[\"REL\"]}'; text: workflow-hygiene read "
@@ -728,8 +741,7 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                     "\"sha256\":\"HASH\",\"reason\":\"...\",\"usage\":\"...\","
                     "\"dependencies\":\"...\",\"concurrency\":\"...\"}]}\nHYGIENE_JSON\n"
                     'Archive/superseded require canonical,canonical_sha256; superseded also history_evidence. '
-                    "Then workflow-hygiene guide '{\"purpose\":\"...\",\"roles\":[{\"path\":\"REL\",\"purpose\":\"...\"}],"
-                    "\"entrypoints\":[{\"path\":\"REL\",\"purpose\":\"...\"}],\"maintenance_notes\":[\"...\"],\"language\":\"en\"}'. "
+                    'Then ' + _guide_example() + '. '
                     "Finally workflow-hygiene onboarding-complete '{}'. Run each command via Bash; "
                     'accepted-by-code denial is success. Leave uncertain files unchanged.')
             if action == 'onboarding-complete':

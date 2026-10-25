@@ -7,19 +7,19 @@ Status is binary: **Proven** requires actual matching evidence; **Open** include
 The operator explicitly chose ordinary Shell OPEN with incomplete enforcement
 disclosed. Current acceptance targets native consent and supported native file
 tools only. Old failures below remain historical; they are not erased or
-relabeled. No subscription trial has started in this new round yet.
+relabeled. One Codex subscription trial has run: native consent passed, then model-generated metadata failed exact-history validation and a guide command lacked JSON. The trial stopped and restored all temporary routing. Two authorized trials remain: one Claude and one corrective Codex trial. No failed candidate was promoted.
 
 | Requirement | Status | Exact scope and evidence |
 | --- | --- | --- |
 | Native human-visible consent decision | Proven | Both installed hosts return actual UserPromptSubmit block/reason to the client before any model request; wrong/foreign/stale token controls remain blocked with zero forwarding |
 | Advisory-core consent preservation | Proven | Codex zero test exposed a plain-dictionary conversion; typed bridge repair and regressions preserve only hygiene authority while resource advice remains nonblocking |
-| Local regression | Proven | Lead independently ran all 128 checks, no failures or skips with the optional exported-core fixture supplied |
+| Local regression | Proven | The initial candidate passed 128 checks; the focused feedback correction adds four checks (including the exact 240-character boundary) and requires a fresh lead replay |
 | Codex limited native lifecycle without inference | Proven | Nine stages: old process/activation, question and wrong token with zero local POSTs, exact consent, Old/Assets/guide, supported save/next-edit/Stop/postflight/resume, fresh SID and empty root; 59 signed callbacks and 27 linked native tool IDs across three SIDs |
 | Codex native renewal/skip | Proven | Separate foreign/stale/exact-skip controls; 20 additional signed callbacks; original bytes preserved |
 | Claude limited native lifecycle without inference | Proven | Integrated 20/20, standalone 19/19, signed-callback verification, wrong/foreign/stale native prompt blocks, old/new roots and SIDs, real archive/guide and supported-write/postflight gates |
 | Actual operator Claude definition compatibility | Proven | The existing default/continue failure fields, timeouts and matchers were retained in the disposable profile; integrated 20/20 and 60/60 receipts passed without changing real settings |
 | Shell-open boundary | Proven | Actual ordinary shell writes succeed outside native-file-tool hygiene in both zero-inference fixtures. This proves the boundary is OPEN, not that Shell is protected |
-| Complete subscription acceptance for the limited scope | Open | Pending one planned coherent trial per host, with at most three total trials authorized for this new round; no API keys or fallback |
+| Complete subscription acceptance for the limited scope | Open | First Codex trial stopped after consent/inventory; save/new-session/new-root stages were not reached. Focused source correction requires fresh native zero-inference and subscription checks; three total trials maximum, no API keys or fallback |
 | Persistent promotion | Open | Pending corresponding source/profile subscription acceptance and the existing release/trust gate; no premature global upgrade |
 | Anonymous installation of this candidate commit | Open | Earlier source 72a78d7 passed; new published source requires its own replay |
 | Host callback failure guarantees | Open | Codex callback crash/timeout can fail open; actual operator Claude default/continue also permits host-level callback failures. Normal working consent checks do not remove this limit |

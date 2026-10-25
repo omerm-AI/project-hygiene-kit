@@ -24,6 +24,14 @@ EDITS = {'Edit', 'Write', 'apply_patch', 'MultiEdit', 'NotebookEdit'}
 SHELLS = {'Bash', 'exec_command', 'shell_command'}
 DELEGATION = {'Agent', 'Task', 'spawn_agent'}
 ACTIONS = {'inspect', 'read', 'review', 'restore', 'guide', 'onboarding-inventory', 'onboarding-complete'}
+PARSER_ERRORS = frozenset({'Malformed hygiene sentinel',
+    'Use exactly workflow-hygiene ACTION quoted-JSON',
+    "Use exactly workflow-hygiene-json ACTION <<'HYGIENE_JSON'"})
+PARSER_USAGE = ('Malformed hygiene sentinel: close the single quote around JSON. '
+                "Use exactly workflow-hygiene ACTION '<JSON>'. For a guide: "
+                "workflow-hygiene guide '{\"purpose\":\"...\",\"roles\":[],\"entrypoints\":[],"
+                "\"maintenance_notes\":[],\"language\":\"he\"}'"
+                '. No shell command executed.')
 
 
 def deny(text, stop=False):
@@ -284,6 +292,8 @@ def run(payload, state):
 
 def failure(event, label, exc, *, consent_enabled=False):
     reason = label + ': ' + type(exc).__name__
+    if event == 'PreToolUse' and isinstance(exc, ValueError) and str(exc) in PARSER_ERRORS:
+        return deny(PARSER_USAGE)
     if event == 'UserPromptSubmit' and consent_enabled:
         return {'decision': 'block', 'reason': reason}
     if event == 'PreToolUse':

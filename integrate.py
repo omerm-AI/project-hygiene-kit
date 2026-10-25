@@ -103,9 +103,12 @@ def _organization_entry(core, payload, state):
         return organization.addon({**payload, 'cwd': root}, state, actual)
     except Exception as exc:
         reason = 'Organization validation unavailable: ' + type(exc).__name__
-        if isinstance(exc, ValueError) and str(exc) == 'Malformed hygiene sentinel':
-            reason = ("Malformed hygiene sentinel: close the single quote around JSON. "
-                      "Use exactly workflow-hygiene ACTION '<JSON>'. No shell command executed.")
+        parser = locals().get('organization')
+        parser_errors = getattr(parser, 'PARSER_ERRORS', {'Malformed hygiene sentinel'})
+        if isinstance(exc, ValueError) and str(exc) in parser_errors:
+            reason = getattr(parser, 'PARSER_USAGE',
+                "Malformed hygiene sentinel: close the single quote around JSON. "
+                "Use exactly workflow-hygiene ACTION '<JSON>'. No shell command executed.")
         if event == 'PreToolUse':
             return core._deny(event, reason)
         if event == 'Stop':

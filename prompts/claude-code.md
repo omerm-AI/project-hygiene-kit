@@ -1,6 +1,6 @@
 Current scope, 2026-10-25: keep ordinary Shell OPEN; disclose that it can bypass file-tool hygiene. Evaluate only native consent and supported file-tool safeguards. Require native UserPromptSubmit block/reason before any model step, wrong-token refusal and exact-owner consent. After organization/skip, resend the original blocked work request. Do not silently add shell restrictions or claim full enforcement. Follow the CURRENT acceptance snapshot, not an older historical trial.
 
-Current preview is NOT accepted for global activation. The bounded subscription round did not pass: Claude edited through ordinary shell before consent; Codex stopped at the test transport cap. Use this prompt only for isolated evaluation. Current consent is model context, not a proved human-visible native gate. Read docs/acceptance.md and stop before production application.
+Release gate: consult the CURRENT dated table in docs/acceptance.md. Native zero-inference consent has been proved; that alone does not authorize promotion. The first 25 October Codex subscription trial proved the native consent block, then stopped on malformed workflow metadata. Its candidate was restored. A focused feedback correction requires fresh source-matched acceptance. Historical trials do not certify this revision.
 
 Preview gate: read the current acceptance snapshot and closure plan. Do not activate on unit tests or saved settings alone. Verify installation in a disposable home, then require matching installed-host evidence for the exact runtime and scope. Keep hygiene enforcement separate from resource advice. Standalone and existing-core integrations need their own evidence. Do not silently expand a bounded native-file-tool guarantee into universal filesystem protection.
 
@@ -20,9 +20,10 @@ acceptance or introduce an API key/provider override.
 For zero-inference engine checks, a separate validated observer may use
 $.tool.call inside an active turn; $.tool.check does not invoke PreToolUse.
 Verify actual prompt_id, tool_use_id, source-bound receipts and files. A policy
-denial must be distinguished from permissions and validation failure. Configure
-supported PreToolUse onFailure:block and an explicit timeout; prove timeout,
-missing callback and invalid schema behavior. Plain-text stdout is not a failure.
+denial must be distinguished from permissions and validation failure. Record the actual PreToolUse failure policy and timeout. Do not silently
+change default/continue into block. Test normal denials separately from callback
+crash, timeout and invalid schema; disclose any fail-open behavior. Plain-text
+stdout is not a host failure.
 Long JSON uses the exact quoted heredoc in docs/protocol.md, parsed before shell.
 After readiness, run at most one explicitly budgeted subscription trial, with
 no fallback or automatic retry, and promote only exact matching accepted source.
