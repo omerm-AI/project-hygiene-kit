@@ -779,7 +779,14 @@ def stop(payload, state_dir):
             data = _checked_state(state, root, sid)
             ownership = _read(owner)
             if data.get('pending') or (ownership.get('pending') and ownership.get('session') == hashlib.sha256(sid.encode()).hexdigest()):
-                raise ValueError('observed edit requires explicit file/dependency/concurrency review')
+                raise ValueError('observed edit requires explicit file/dependency/concurrency review. '
+                    'Run workflow-hygiene inspect '
+                    "'{\"paths\":[\"REL\"]}' alone and copy its fresh hash. Then run "
+                    "workflow-hygiene-json review <<'HYGIENE_JSON'\n"
+                    '{"phase":"postflight","entries":[{"path":"REL","decision":"keep",'
+                    '"sha256":"FRESH_HASH","reason":"...","usage":"...",'
+                    '"dependencies":"...","concurrency":"..."}]}\nHYGIENE_JSON\n'
+                    'Review every pending path; Stop stays blocked until verified.')
             _validate_reviewed(root, data)
         return {}
     except Exception as exc:

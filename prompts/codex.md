@@ -1,6 +1,6 @@
 Current scope, 2026-10-25: keep ordinary Shell OPEN; disclose that it can bypass file-tool hygiene. Evaluate native consent and supported file-tool safeguards only. Require actual UserPromptSubmit block/reason before inference, not a warning produced by an advisory wrapper. Wrong tokens remain blocked; after organization/skip resend the original work request. Preserve native trust and do not invent accepted release hashes. Follow the CURRENT acceptance snapshot.
 
-Release gate: consult the CURRENT dated table in docs/acceptance.md. Native zero-inference consent has been proved; that alone does not authorize promotion. The first 25 October Codex subscription trial proved the native consent block, then stopped on malformed workflow metadata. Its candidate was restored. A focused feedback correction requires fresh source-matched acceptance. Historical trials do not certify this revision.
+Release gate: consult the CURRENT dated table in docs/acceptance.md. Two subscription trials have stopped without complete acceptance. Claude actually organized the existing fixture and saved through native Write with an exact Old beforeimage, but a chained metadata command left postflight pending. The final parser/feedback correction requires its own source-matched native checks. Do not activate this preview globally or infer completion from those partial successes.
 
 Preview gate: read the current acceptance snapshot and closure plan. Do not activate on unit tests or saved settings alone. Verify installation in a disposable home, then require matching installed-host evidence for the exact runtime and scope. Keep hygiene enforcement separate from resource advice. Do not claim universal fail-closed behavior: the tested Codex host can continue a tool when a hook crashes or times out. Report that limit explicitly.
 
@@ -25,3 +25,5 @@ JSON; never bare unquoted JSON. Test old/new folders and both organizing/finishe
 metadata dispatch. Permit at most one declared subscription trial, with a fixed
 turn/deadline budget and no API-key/provider fallback or blind retry. Preserve
 recoverable files and unrelated settings; deploy only the exact accepted source.
+
+Metadata commands must run alone, never chained with shasum, Git or another shell command. The guarded simple-separator cases are documented in docs/protocol.md; arbitrary shell syntax remains outside enforcement. A Stop asking for postflight requires fresh inspect evidence and an explicit phase:postflight review; never clear pending state manually.

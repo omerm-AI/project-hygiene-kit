@@ -27,6 +27,10 @@ ACTIONS = {'inspect', 'read', 'review', 'restore', 'guide', 'onboarding-inventor
 PARSER_ERRORS = frozenset({'Malformed hygiene sentinel',
     'Use exactly workflow-hygiene ACTION quoted-JSON',
     "Use exactly workflow-hygiene-json ACTION <<'HYGIENE_JSON'"})
+CHAINED_ERROR = 'Chained hygiene metadata command'
+CHAINED_USAGE = ('Run metadata alone: workflow-hygiene inspect '
+                 "'{\"paths\":[\"REL\"]}'. Retry the original metadata command alone. "
+                 'No shell command executed.')
 PARSER_USAGE = ('Malformed hygiene sentinel: close the single quote around JSON. '
                 "Use exactly workflow-hygiene ACTION '<JSON>'. For a guide: "
                 "workflow-hygiene guide '{\"purpose\":\"...\",\"roles\":[],\"entrypoints\":[],"
@@ -52,10 +56,75 @@ def data(payload):
     return value if isinstance(value, dict) else {}
 
 
+def _chained_metadata(raw):
+    """Find literal metadata commands after simple separators, outside quotes.
+
+    Substitutions and heredocs are deliberately outside this lexical contract.
+    """
+    quote = None
+    at_start = True
+    saw_command = False
+    after_separator = False
+    candidate = False
+    index = 0
+    while index < len(raw):
+        char = raw[index]
+        next_char = raw[index + 1] if index + 1 < len(raw) else ''
+        if quote == "'":
+            if char == "'":
+                quote = None
+            index += 1
+            continue
+        if quote == '"':
+            if char == '`' or (char == '$' and next_char == '('):
+                return candidate
+            if char == '\\':
+                index += 2
+                continue
+            if char == '"':
+                quote = None
+            index += 1
+            continue
+        if char == '`' or (char == '$' and next_char == '(') or (char == '<' and next_char == '<'):
+            return candidate
+        if char == '\\':
+            if at_start:
+                at_start, saw_command, after_separator = False, True, False
+            index += 2
+            continue
+        if char in ("'", '"'):
+            if at_start:
+                at_start, saw_command, after_separator = False, True, False
+            quote = char
+            index += 1
+            continue
+        if char == '#' and (at_start or (index > 0 and raw[index - 1].isspace())):
+            end = raw.find('\n', index)
+            index = len(raw) if end < 0 else end
+            continue
+        separator = char in (';', '\n') or (char == '&' and next_char == '&') or (char == '|' and next_char == '|')
+        if separator:
+            after_separator = saw_command
+            at_start = True
+            index += 2 if char in ('&', '|') else 1
+            continue
+        if at_start and not char.isspace():
+            if after_separator:
+                for marker in ('workflow-hygiene-json', 'workflow-hygiene'):
+                    end = index + len(marker)
+                    if raw.startswith(marker, index) and (end == len(raw) or raw[end].isspace() or raw[end] in ';&|'):
+                        candidate = True
+            at_start, saw_command, after_separator = False, True, False
+        index += 1
+    return candidate
+
+
 def command(payload):
     raw = data(payload).get('command', data(payload).get('cmd'))
     if not isinstance(raw, str):
         return None
+    if _chained_metadata(raw):
+        raise ValueError(CHAINED_ERROR)
     stripped = raw.lstrip()
     marker = 'workflow-hygiene-json'
     if stripped.startswith(marker):
@@ -292,6 +361,8 @@ def run(payload, state):
 
 def failure(event, label, exc, *, consent_enabled=False):
     reason = label + ': ' + type(exc).__name__
+    if event == 'PreToolUse' and isinstance(exc, ValueError) and str(exc) == CHAINED_ERROR:
+        return deny(CHAINED_USAGE)
     if event == 'PreToolUse' and isinstance(exc, ValueError) and str(exc) in PARSER_ERRORS:
         return deny(PARSER_USAGE)
     if event == 'UserPromptSubmit' and consent_enabled:

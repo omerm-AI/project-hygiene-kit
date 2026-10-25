@@ -55,3 +55,11 @@ Decisions:
 Review up to 128 entries per bounded command. Known native edits preserve beforeimages and become pending. Postflight requires fresh actual hashes before another supported edit. Native Stop checks do not substitute for independent substantive QA.
 
 Ordinary shell is not made safe by these sentinels. An accepted sentinel deliberately denies the tool call after executing only its specific checked operation.
+
+## Run metadata alone
+
+Send each metadata command as the complete tool command. Never combine it with shasum, Git, echo, or another shell command. The parser refuses a literal metadata command in command position after `;`, `&&`, `||`, or a newline, respecting quotes. It rejects the whole tool request before any prefix command executes. Quoted strings and file names containing the sentinel remain ordinary shell arguments.
+
+This is a deliberately narrow lexical check, not a shell parser or filesystem security boundary. A substitution, backtick expression, or heredoc before a candidate leaves that shell form outside this check. A metadata command already detected before its heredoc remains rejected. General shell, connectors and background writes stay uncovered.
+
+A pending-review Stop retains its denial and provides fresh inspect plus complete phase:postflight review syntax. Run those separately. A stale hash remains rejected; Stop passes only after the explicit current-byte review succeeds. Never clear pending state manually or count a test-observer request cap as successful completion.

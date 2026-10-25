@@ -2,7 +2,7 @@
 
 The operator explicitly chose to leave ordinary Shell commands open and disclose incomplete enforcement. This candidate blocks an existing project's first user prompt through the native consent decision/reason, before model inference. Wrong replies remain blocked; only the exact current owner token advances organization or skips it. Resend the original work request after organization/skip; the kit does not retain and reinject its full text.
 
-The acceptance target is supported native file-tool review/backup/guide behavior, not arbitrary Shell/MCP/background writes or guaranteed model compliance. The current model-free gates and subscription/promotion status are recorded in docs/acceptance.md. Do not activate a candidate merely because a setting or source file exists. The failed 22 October round below remains historical evidence.
+The acceptance target is supported native file-tool review/backup/guide behavior, not arbitrary Shell/MCP/background writes or guaranteed model compliance. The current model-free gates and subscription/promotion status are recorded in docs/acceptance.md. Do not activate a candidate merely because a setting or source file exists. The failed 22 October round below remains historical evidence. On 25 October, a real Claude run organized the fixture and verified a native save/Old beforeimage, then stopped with postflight pending after a chained metadata command. A focused correction recognizes simple chained metadata calls before execution and gives explicit postflight recovery feedback. This is still an evaluation preview; global promotion remains gated.
 
 # Project Hygiene Kit
 

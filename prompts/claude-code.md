@@ -1,6 +1,6 @@
 Current scope, 2026-10-25: keep ordinary Shell OPEN; disclose that it can bypass file-tool hygiene. Evaluate only native consent and supported file-tool safeguards. Require native UserPromptSubmit block/reason before any model step, wrong-token refusal and exact-owner consent. After organization/skip, resend the original blocked work request. Do not silently add shell restrictions or claim full enforcement. Follow the CURRENT acceptance snapshot, not an older historical trial.
 
-Release gate: consult the CURRENT dated table in docs/acceptance.md. Native zero-inference consent has been proved; that alone does not authorize promotion. The first 25 October Codex subscription trial proved the native consent block, then stopped on malformed workflow metadata. Its candidate was restored. A focused feedback correction requires fresh source-matched acceptance. Historical trials do not certify this revision.
+Release gate: consult the CURRENT dated table in docs/acceptance.md. Two subscription trials have stopped without complete acceptance. Claude actually organized the existing fixture and saved through native Write with an exact Old beforeimage, but a chained metadata command left postflight pending. The final parser/feedback correction requires its own source-matched native checks. Do not activate this preview globally or infer completion from those partial successes.
 
 Preview gate: read the current acceptance snapshot and closure plan. Do not activate on unit tests or saved settings alone. Verify installation in a disposable home, then require matching installed-host evidence for the exact runtime and scope. Keep hygiene enforcement separate from resource advice. Standalone and existing-core integrations need their own evidence. Do not silently expand a bounded native-file-tool guarantee into universal filesystem protection.
 
@@ -27,3 +27,5 @@ stdout is not a host failure.
 Long JSON uses the exact quoted heredoc in docs/protocol.md, parsed before shell.
 After readiness, run at most one explicitly budgeted subscription trial, with
 no fallback or automatic retry, and promote only exact matching accepted source.
+
+Metadata commands must run alone, never chained with shasum, Git or another shell command. The guarded simple-separator cases are documented in docs/protocol.md; arbitrary shell syntax remains outside enforcement. A Stop asking for postflight requires fresh inspect evidence and an explicit phase:postflight review; never clear pending state manually.

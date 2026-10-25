@@ -105,7 +105,9 @@ def _organization_entry(core, payload, state):
         reason = 'Organization validation unavailable: ' + type(exc).__name__
         parser = locals().get('organization')
         parser_errors = getattr(parser, 'PARSER_ERRORS', {'Malformed hygiene sentinel'})
-        if isinstance(exc, ValueError) and str(exc) in parser_errors:
+        if isinstance(exc, ValueError) and str(exc) == getattr(parser, 'CHAINED_ERROR', None):
+            reason = getattr(parser, 'CHAINED_USAGE', reason)
+        elif isinstance(exc, ValueError) and str(exc) in parser_errors:
             reason = getattr(parser, 'PARSER_USAGE',
                 "Malformed hygiene sentinel: close the single quote around JSON. "
                 "Use exactly workflow-hygiene ACTION '<JSON>'. No shell command executed.")
