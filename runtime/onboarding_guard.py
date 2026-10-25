@@ -175,7 +175,10 @@ def _event(payload):
 
 
 def _deny(payload, reason):
-    return hg._deny('Onboarding: ' + reason, stop=_event(payload) == 'Stop')
+    message = 'Onboarding: ' + reason
+    if _event(payload) == 'UserPromptSubmit':
+        return {'decision': 'block', 'reason': message[:900]}
+    return hg._deny(message, stop=_event(payload) == 'Stop')
 
 
 def _accepted(payload, message):
@@ -377,11 +380,12 @@ def _checked(data, root, identity):
 
 
 def _question(token):
-    message = '[ORG:v1] לארגן? השב: סדר ' + token + ' / דלג ' + token
-    if len(message) > 60:
+    message = ('[ORG:v1] הבקשה נחסמה. השב בדיוק: סדר ' + token +
+               ' או דלג ' + token +
+               '. לאחר הבחירה והסידור שלח מחדש את הבקשה המקורית.')
+    if len(message) > 200:
         raise ValueError('question too long')
-    return {'hookSpecificOutput': {'hookEventName': 'UserPromptSubmit',
-                                   'additionalContext': message}}
+    return {'decision': 'block', 'reason': message}
 
 
 def _next_inventory():
@@ -672,7 +676,7 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                         data.update(phase='organizing', owner_sid=sid, token=None)
                     hg._write(path, data)
                     return None if match.group(1) == 'דלג' else _next_inventory()
-                return None
+                return _question(data['token'])
             if event == 'Stop':
                 if phase == 'awaiting':
                     return None
@@ -685,6 +689,8 @@ def run(payload, state_dir, guard_state_dir, *, native_edit=False, command=None)
                     raise ValueError('explicit native prompt consent required')
                 return None
             if sid != data.get('owner_sid'):
+                if event == 'UserPromptSubmit' and not payload.get('agent_id'):
+                    return _deny(payload, 'ארגון הפרויקט שייך לשיחה אחרת; הבקשה נחסמה.')
                 if native_edit or action in gated:
                     raise ValueError('another native session owns organization')
                 return None

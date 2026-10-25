@@ -6,9 +6,11 @@ from pathlib import Path
 import re
 import sys
 import tempfile
+import types
 import unittest
 from unittest import mock
 
+import integrate
 from runtime import onboarding_guard as og
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'runtime'))
 import hook  # noqa: E402
@@ -44,23 +46,96 @@ class OnboardingTests(unittest.TestCase):
 
     def invoke(self, event='UserPromptSubmit', prompt='', sid='lead', agent=None,
                *, native_edit=False, command=None):
+        if command is not None and event == 'UserPromptSubmit':
+            event = 'PreToolUse'
         return og.run(self.payload(event, prompt, sid, agent), self.state, self.guard,
                       native_edit=native_edit, command=command)
 
     def ask(self):
         output = self.invoke(prompt='normal work')
-        text = output['hookSpecificOutput']['additionalContext']
-        self.assertLessEqual(len(text), 60)
+        self.assertEqual(output['decision'], 'block')
+        text = output['reason']
+        self.assertLessEqual(len(text), 200)
+        self.assertIn('שלח מחדש את הבקשה המקורית', text)
         return re.search(r'(?<![0-9a-f])[0-9a-f]{8}(?![0-9a-f])', text).group()
 
     def test_exact_consent_and_skip(self):
         token = self.ask()
         self.assertTrue(rejected(self.invoke(event='PreToolUse', native_edit=True)))
-        self.assertIsNone(self.invoke(prompt='yes ' + token))
+        self.assertEqual(self.invoke(prompt='yes ' + token)['decision'], 'block')
         self.assertTrue(rejected(self.invoke(event='PreToolUse', native_edit=True)))
         self.assertIsNone(self.invoke(prompt='דלג ' + token))
         self.assertIsNone(self.invoke(event='PreToolUse', native_edit=True))
         self.assertTrue(rejected(self.invoke(command=('onboarding-inventory', {}))))
+
+    def test_every_unmatched_native_reply_remains_blocked(self):
+        token = self.ask()
+        for prompt in ('', 'כן', 'סדר ' + '0' * 8, 'דלג ' + token + ' now',
+                       "'סדר " + token + "'", 'סדר ' + token.upper()):
+            with self.subTest(prompt=prompt):
+                result = self.invoke(prompt=prompt)
+                self.assertEqual(result['decision'], 'block')
+                self.assertIn(token, result['reason'])
+                self.assertLessEqual(len(result['reason']), 200)
+                self.assertEqual(og.status(self.payload(), self.state), 'awaiting')
+        foreign = self.invoke(prompt='סדר ' + token, sid='other')
+        self.assertEqual(foreign['decision'], 'block')
+        rotated = re.search(r'[0-9a-f]{8}', foreign['reason']).group()
+        self.assertNotEqual(rotated, token)
+        self.assertEqual(self.invoke(prompt='דלג ' + token, sid='other')['decision'], 'block')
+        self.assertEqual(self.invoke(prompt='סדר ' + rotated, sid='other')['hookSpecificOutput']
+                         ['hookEventName'], 'UserPromptSubmit')
+        self.assertEqual(self.invoke(prompt='ordinary work', sid='lead')['decision'], 'block')
+        state_text = next(self.state.glob('onboarding-' + '[0-9a-f]' * 64 + '.json')).read_text()
+        self.assertNotIn('ordinary work', state_text)
+
+    def test_nested_prompt_keeps_existing_exemption_and_empty_root_blocks(self):
+        self.assertIsNone(self.invoke(prompt='nested work', agent='worker-1'))
+        self.assertEqual(og.status(self.payload(), self.state), 'unseen')
+        token = self.ask()
+        self.assertIsNone(self.invoke(prompt='סדר ' + token, agent='worker-1'))
+        self.assertEqual(og.status(self.payload(), self.state), 'awaiting')
+        self.assertEqual(self.invoke(prompt='empty root follow-up')['decision'], 'block')
+
+    def test_standalone_consent_validation_error_blocks_native_prompt(self):
+        error = ValueError('private input must not leak')
+        result = hook.failure('UserPromptSubmit', 'Project hygiene validation unavailable',
+                              error, consent_enabled=True)
+        self.assertEqual(result, {'decision': 'block',
+                         'reason': 'Project hygiene validation unavailable: ValueError'})
+        self.assertEqual(hook.failure('UserPromptSubmit', 'Resource unavailable', error),
+                         {'systemMessage': 'Resource unavailable: ValueError'})
+
+    def test_generated_adapters_block_consent_errors_and_keep_advisory_baseline(self):
+        from test_integrate import ADAPTER, BRIDGE
+        adapter = {}
+        exec(integrate._adapter(ADAPTER), adapter)
+        adapter_module = types.ModuleType('hygiene_adapter')
+        adapter_module.__dict__.update(adapter)
+        payload = {'hook_event_name': 'UserPromptSubmit', 'cwd': str(self.root)}
+        core = types.SimpleNamespace(
+            _event=lambda event: event['hook_event_name'],
+            _protected_scope=lambda event, state: (True, str(self.root), str(self.root)))
+        organization = types.ModuleType('organization_runtime')
+        organization.onboarding_guard = types.SimpleNamespace(_policy=lambda state: True,
+                                                               prompt_suppressed=lambda *args: False)
+        organization.addon = mock.Mock(side_effect=ValueError('secret diagnostic'))
+        with mock.patch.dict(sys.modules, {'organization_runtime': organization,
+                                           'hygiene_adapter': adapter_module}):
+            self.assertEqual(adapter['_organization_entry'](core, payload, self.state),
+                             {'decision': 'block',
+                              'reason': 'Organization validation unavailable: ValueError'})
+            bridge = {'workflow': types.SimpleNamespace(STATE=self.state)}
+            exec(integrate._bridge(BRIDGE), bridge)
+            scope = types.ModuleType('tool_scope_hook')
+            scope._protected_scope = lambda *args: (True, str(self.root), str(self.root))
+            with mock.patch.dict(sys.modules, {'tool_scope_hook': scope}):
+                self.assertEqual(bridge['run'](payload)['decision'], 'block')
+                scope._protected_scope = lambda *args: (False, None, None)
+                self.assertEqual(bridge['run'](payload)['decision'], 'block')
+                scope._protected_scope = lambda *args: (True, str(self.root), str(self.root))
+                organization.addon = lambda *args: None
+                self.assertEqual(bridge['run'](payload), {'baseline': 'UserPromptSubmit'})
 
     def test_owner_and_empty_project_completion(self):
         token = self.ask()
@@ -136,9 +211,9 @@ class OnboardingTests(unittest.TestCase):
         old = self.ask()
         output = self.invoke(prompt='ordinary', sid='new-lead')
         new = re.search(r'(?<![0-9a-f])[0-9a-f]{8}(?![0-9a-f])',
-                        output['hookSpecificOutput']['additionalContext']).group()
+                        output['reason']).group()
         self.assertNotEqual(old, new)
-        self.assertIsNone(self.invoke(prompt='סדר ' + old, sid='new-lead'))
+        self.assertEqual(self.invoke(prompt='סדר ' + old, sid='new-lead')['decision'], 'block')
         self.assertEqual(og.status(self.payload(sid='new-lead'), self.state), 'awaiting')
         self.assertIn('onboarding-inventory', str(self.invoke(prompt='סדר ' + new, sid='new-lead')))
         self.assertEqual(og.status(self.payload(sid='new-lead'), self.state), 'organizing')
@@ -307,7 +382,7 @@ class OnboardingTests(unittest.TestCase):
         (self.root / 'former.md').write_bytes(b'Former accepted overview')
         (self.root / 'current.md').write_bytes(b'Current accepted overview')
         out = self.invoke(prompt=clause)
-        token = re.search(r'[0-9a-f]{8}', out['hookSpecificOutput']['additionalContext']).group()
+        token = re.search(r'[0-9a-f]{8}', out['reason']).group()
         self.invoke(prompt='סדר ' + token)
         inventory = self.invoke(command=('onboarding-inventory', {}))
         self.assertIn('Inventory frozen', str(inventory))
@@ -429,7 +504,7 @@ class OnboardingTests(unittest.TestCase):
         (self.root / 'current.md').write_text('Current')
         self.ask()
         out = self.invoke(prompt='former.md was replaced by current.md', sid='new-lead')
-        token = re.search(r'[0-9a-f]{8}', out['hookSpecificOutput']['additionalContext']).group()
+        token = re.search(r'[0-9a-f]{8}', out['reason']).group()
         self.invoke(prompt='סדר ' + token, sid='new-lead')
         self.invoke(command=('onboarding-inventory', {}), sid='new-lead')
         self.assertEqual(len(self.history_state()['native_history']), 1)

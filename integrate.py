@@ -110,6 +110,8 @@ def _organization_entry(core, payload, state):
             return core._deny(event, reason)
         if event == 'Stop':
             return {'decision': 'block', 'reason': reason}
+        if event == 'UserPromptSubmit':
+            return {'decision': 'block', 'reason': reason}
         return {'systemMessage': reason}
 
 
@@ -345,17 +347,32 @@ def _bridge(source):
     if event == 'UserPromptSubmit' and not payload.get('agent_id'):
         state = workflow.STATE
         if (state / 'onboarding-policy.json').exists() or (state / 'onboarding-policy.json').is_symlink():
-            import tool_scope_hook
-            import organization_runtime as organization
-            ok, actual, root = tool_scope_hook._protected_scope(payload, state)
-            if not ok:
-                return {'systemMessage': 'Organization project root unavailable.'}
-            protected = {**payload, 'cwd': root}
-            result = organization.addon(protected, state, actual)
-            if result is not None:
-                return result
-            if organization.onboarding_guard.prompt_suppressed(protected, state):
-                return {}
+            try:
+                import hygiene_adapter
+                if (not isinstance(getattr(hygiene_adapter, 'HygieneDecision', None), type)
+                        or not callable(getattr(hygiene_adapter, '_hygiene_decision', None))):
+                    raise ImportError('organization consent decision wrapper unavailable')
+            except Exception:
+                import sys
+                sys.stderr.write('Organization consent adapter unavailable.\\n')
+                raise SystemExit(2)
+            try:
+                import tool_scope_hook
+                import organization_runtime as organization
+                ok, actual, root = tool_scope_hook._protected_scope(payload, state)
+                if not ok:
+                    return hygiene_adapter._hygiene_decision(
+                        {'decision': 'block', 'reason': 'Organization project root unavailable.'})
+                protected = {**payload, 'cwd': root}
+                result = organization.addon(protected, state, actual)
+                if result is not None:
+                    return hygiene_adapter._hygiene_decision(result)
+                if organization.onboarding_guard.prompt_suppressed(protected, state):
+                    return {}
+            except Exception as exc:
+                return hygiene_adapter._hygiene_decision(
+                    {'decision': 'block', 'reason':
+                     'Organization validation unavailable: ' + type(exc).__name__})
 '''
     source = _replace(source, anchor, anchor + inserted)
     version = "            version = native_receipt.handler_version('project-hygiene-codex-v1', components)"

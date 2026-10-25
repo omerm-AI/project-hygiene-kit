@@ -109,7 +109,7 @@ class OnboardingContract(unittest.TestCase):
 
     def command(self, action: str, body: dict | None = None, **kwargs) -> object:
         return onboarding_guard.run(
-            self.event("UserPromptSubmit", **kwargs), self.state, self.guard,
+            self.event("PreToolUse", **kwargs), self.state, self.guard,
             command=(action, {} if body is None else body)
         )
 
@@ -153,7 +153,8 @@ class OnboardingContract(unittest.TestCase):
         self.assertEqual(sample.read_bytes(), b"preserve me")
         self.assertEqual(before.st_mtime_ns, sample.stat().st_mtime_ns)
         repeated = self.run_event("UserPromptSubmit", prompt="more normal work")
-        self.assertNotIn(token, _wire(repeated))
+        self.assertEqual(repeated['decision'], 'block')
+        self.assertIn(token, repeated['reason'])
         stop = self.run_event("Stop")
         self.assertNotIn('"continue": true', _wire(stop).lower())
         self.assertEqual(sample.read_bytes(), b"preserve me")

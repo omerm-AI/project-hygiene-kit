@@ -4,7 +4,7 @@ Native session/turn identifiers and the protected project root come from the hos
 
 ## Existing folder
 
-The first lead UserPromptSubmit after activation emits a short provenance-tagged question. Only the exact subsequent native user message `סדר TOKEN` or `דלג TOKEN` applies. Another lead session renews a still-pending token; organizing ownership is not transferred. Subagents cannot grant consent.
+The first lead UserPromptSubmit after activation returns a native blocking decision/reason containing the provenance-tagged question, before model inference. Wrong replies remain blocked. Only the exact subsequent native user message `סדר TOKEN` or `דלג TOKEN` applies. After organization or skip, resend the original work request; the kit does not cache/reinject its full text. Another lead session renews a still-pending token; organizing ownership is not transferred. Subagents cannot grant consent.
 
 With approval:
 1. Read only available conversation context and relevant filesystem evidence.

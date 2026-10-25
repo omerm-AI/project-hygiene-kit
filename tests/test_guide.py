@@ -86,7 +86,7 @@ class GuideContract(unittest.TestCase):
         policy.write_text('{"schema":1,"generation":"v1"}')
         policy.chmod(0o600)
         first = onboarding_guard.run(self.payload(), self.state, self.guard)
-        question = first['hookSpecificOutput']['additionalContext']
+        question = first['reason']
         import re
         token = re.search(r'(?i)\b[0-9a-f]{8}\b', question).group(0)
         body = self.context('An existing Python project',
@@ -143,7 +143,7 @@ class GuideContract(unittest.TestCase):
         first = onboarding_guard.run(self.payload(), self.state, self.guard)
         import re
         token = re.search(r'(?i)\b[0-9a-f]{8}\b',
-                          first['hookSpecificOutput']['additionalContext']).group(0)
+                          first['reason']).group(0)
         onboarding_guard.run(self.payload(prompt=f'סדר {token}'), self.state, self.guard)
         body = self.context('Project', roles=[{'path': 'launch.py', 'purpose': 'Code'}],
                             entrypoints=[{'path': 'launch.py', 'purpose': 'Launch'}])

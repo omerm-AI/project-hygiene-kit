@@ -1,3 +1,16 @@
+## Approved limited closure round — 2026-10-25
+
+This section controls the new round. The operator explicitly selected ordinary Shell OPEN with incomplete enforcement disclosed; do not introduce a blanket shell gate, rewrite, sandbox, build restriction or universal write claim. The earlier 22 October plan/results remain historical. The selected lead owns QA; Astra reviews the native boundary, bounded gpt-6-sol workers implement/test, and no model test starts before source-bound model-free acceptance.
+
+1. **Consent repair.** First existing-root prompt and wrong/foreign/stale replies must return a native blocking decision/reason before inference. Exact owner consent advances; nested-agent exclusions, empty-root initialization, inventory/history and skip semantics remain. Explain that the blocked original request must be resent after organization; retain no full prompt. Verify actual advisory-core bridge preservation and validation-error blocking, while resource advice remains nonblocking.
+2. **Zero-inference native acceptance.** Freeze source and effective settings. In each installed host, prove a client-received native block with zero model forwarding, wrong/foreign/stale refusal and exact-token acceptance. Then old-process/new-SID, existing/empty-root organization, real Old bytes/mtime, Assets, contextual guide, native save/next-edit/Stop/postflight/resume and skip. Matched guard-absent controls must actually write. Shell remains an explicit allowed counterexample. Reuse verified receipt, isolation and recovery controllers; do not infer behavior from configuration.
+3. **Bounded subscription acceptance.** New-round budget is at most three coherent trials TOTAL across both hosts, initially one each and one corrective reserve. Use native subscriptions only, no model API keys, no fallback and no blind retry. A request may explicitly select the native file tool; it must not supply the cleanup workflow or fabricated reviews. Count forwarded steps/native turns and state unavailable provider counters. A consent-blocked prompt is not a failed model response or successful inference. Give the exact native consent and resend the ordinary work request afterward. Native transport must pass no-inference readiness first; CONNECT tunnel count is not provider-request count.
+4. **Scoped promotion and delivery.** Promote only the matching source/profile that passed. Preserve native trust and the existing operator release gate; retain ordinary resource/planning advice. Test actual global definition compatibility, backups, old/new callbacks and duplicate absence, then anonymous installation and privacy-safe Git publication. Every requirement is Proven or Open with its precise scope/reason. Shell, generic connectors, callback failure/unloaded-process and general semantic limits remain Open by contract, not disguised as a completed universal requirement.
+
+Task DoD: native user consent and supported native-file-tool hygiene pass source-matched checks in both hosts, and only those accepted profiles are deployed. Passing ordinary Shell writes is not an enforcement success; under the chosen scope it is an intentionally uncovered boundary.
+
+---
+
 # Closure plan: isolated native-host acceptance
 
 State: model-free readiness completed; the bounded subscription round did not

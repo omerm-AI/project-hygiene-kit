@@ -282,8 +282,10 @@ def run(payload, state):
     return {}
 
 
-def failure(event, label, exc):
+def failure(event, label, exc, *, consent_enabled=False):
     reason = label + ': ' + type(exc).__name__
+    if event == 'UserPromptSubmit' and consent_enabled:
+        return {'decision': 'block', 'reason': reason}
     if event == 'PreToolUse':
         return deny(reason)
     if event == 'Stop':
@@ -312,7 +314,9 @@ def main():
         valid_envelope = True
         result = run(payload, state)
     except Exception as exc:
-        result = failure(args.event, 'Project hygiene validation unavailable', exc)
+        result = failure(args.event, 'Project hygiene validation unavailable', exc,
+                         consent_enabled=(state / 'onboarding-policy.json').exists() or
+                         (state / 'onboarding-policy.json').is_symlink())
     if not valid_envelope:
         print(json.dumps(result, ensure_ascii=False))
         return
@@ -323,7 +327,9 @@ def main():
         native_receipt.create_native(state / 'receipts', payload, native_receipt.outcome_for(result),
                                     native_receipt.handler_version('project-hygiene-' + args.platform, components))
     except Exception as exc:
-        result = failure(args.event, 'Receipt validation unavailable', exc)
+        result = failure(args.event, 'Receipt validation unavailable', exc,
+                         consent_enabled=(state / 'onboarding-policy.json').exists() or
+                         (state / 'onboarding-policy.json').is_symlink())
     print(json.dumps(result, ensure_ascii=False))
 
 

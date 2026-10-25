@@ -1,3 +1,9 @@
+## Current limited closure candidate — 2026-10-25
+
+The operator explicitly chose to leave ordinary Shell commands open and disclose incomplete enforcement. This candidate blocks an existing project's first user prompt through the native consent decision/reason, before model inference. Wrong replies remain blocked; only the exact current owner token advances organization or skips it. Resend the original work request after organization/skip; the kit does not retain and reinject its full text.
+
+The acceptance target is supported native file-tool review/backup/guide behavior, not arbitrary Shell/MCP/background writes or guaranteed model compliance. The current model-free gates and subscription/promotion status are recorded in docs/acceptance.md. Do not activate a candidate merely because a setting or source file exists. The failed 22 October round below remains historical evidence.
+
 # Project Hygiene Kit
 
 A local, model-free hook runtime for Codex and Claude Code. It asks before organizing existing projects, preserves replaced files, checks known native saves, and maintains a contextual folder guide.
@@ -8,7 +14,7 @@ The approved integration separates hygiene enforcement from resource advice: a c
 
 ## What changes
 
-1. Existing project: the first delivered prompt adds an organization question to model context. This version does not block that prompt or guarantee the human sees the question. Installation does not reorganize old folders.
+1. Existing project: the candidate returns a native blocking organization question to the client before model inference. Exact subsequent owner consent or skip is required. Resend the original work request afterward. Installation does not reorganize old folders.
 2. Reply with the exact hook-generated `סדר TOKEN` to organize, or `דלג TOKEN` to skip legacy cleanup.
 3. Available conversation context supplies file roles and clear replacement evidence. Hidden history is not read from transcripts.
 4. Reviewed prior versions move to `Old/YYYY-MM/` with original bytes, relative paths, timestamps and recovery records. Nothing is permanently deleted.
@@ -79,7 +85,7 @@ Archival month currently uses Asia/Jerusalem. Inventory is bounded to 5,000 elig
 
 Both hosts received context from unrelated global hooks. Removing instruction files, disabling connectors, or setting empty developer instructions does not prove that the model received only the target hook. Future disposable test profiles must allowlist the intended callbacks and verify effective context before another subscription request. A model declining an unapproved edit is not proof that a native tool was blocked. This preview must remain inactive until its matching native lifecycle passes.
 
-## Actual closure-round result
+## Historical closure-round result — 2026-10-22
 
 The current Claude subscription trial received the hook question but wrote through ordinary Bash before consent. The active file-tools policy deliberately delegates that path. Eight verified callbacks link the actual write; no Old, Assets or guide was created. The trial stopped after two model forwards. Codex started two turns and completed its baseline, then stopped at the controller's 16-CONNECT limit; provider-request count is unavailable. Neither complete workflow passed; no upgrade was promoted.
 
